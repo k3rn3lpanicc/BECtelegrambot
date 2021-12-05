@@ -85,5 +85,3 @@ print('Listening ...')
 while 1:
     time.sleep(10)
 
-
-#boz
