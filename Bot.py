@@ -32,49 +32,6 @@ def appendtodatabas(excelfilename , columns):
         conn.execute("INSERT into users(id,name) values(?,?)" , [row['id'],row['name']])
     conn.commit()
 
-def get_user_data(telegram_id):
-    conn = sqlite3.connect(db_name)
-    curs = conn.execute('SELECT * FROM users WHERE tcode = ?' , [str(telegram_id)])
-    rr = dict()
-    for row in curs:
-        rr['uid'] = row[0]
-        rr['id'] = row[1]
-        rr['name'] = row[2]
-        rr['tcode'] = row[3]
-        rr['phno'] = row[4]
-        return rr
-    return False
-
-def get_user_by_column(column , value):
-    conn = sqlite3.connect(db_name)
-    curs = conn.execute('SELECT * FROM users WHERE '+column+' = ?', [str(value)])
-    rows = []
-    for row in curs:
-        rows.append(row)
-    return rows
-def get_user_state(telegram_id):
-    conn = sqlite3.connect(db_name)
-    curs = conn.execute('select state from users2 where tid = ?',[str(telegram_id)])
-    state = ""
-    for row in curs:
-        state = row[0]
-    if(state == '' or state == None):
-        return False
-    return state
-def set_state(telegram_id, state):
-    conn = sqlite3.connect(db_name)
-    conn.execute("update users2 set state = ? where tid =?" , [str(state),str(telegram_id)])
-    conn.commit()
-def insert_user(telegram_id):
-    conn = sqlite3.connect(db_name)
-    conn.execute("insert into users2 values(?,?,?)",[str(telegram_id),"-1",""])
-    conn.commit()
-def set_column(table_name , column_name , telegram_id,value):
-    conn = sqlite3.connect(db_name)
-    query = "UPDATE "+table_name +" SET "+column_name +" = ? WHERE tid = ?"
-    print(query)
-    conn.execute(query , [str(value) , str(telegram_id)])
-    conn.commit()
 
 def handle(msg):
 
@@ -98,6 +55,7 @@ def handle(msg):
                 bot.sendMessage(chat_id, "لطفا نام کامل خود را وارد کنید.")
                 set_state(chat_id, "entering_name")
                 set_column('users2' , 'id' , chat_id , msg['text'])
+                return
         else:
             bot.sendMessage(chat_id,"لطفا کد عضویت خود را به صورت متن وارد نمایید")
     if(state == "entering_name"):
@@ -114,10 +72,11 @@ def handle(msg):
             bot.sendMessage(chat_id, "ورود با موفقیت انجام شد")
         else:
             bot.sendMessage(chat_id, "نام وارد شده با کدعضویت مطابق نیست")
-    if (user_data == False):
+    if (user_data == False and get_user_state(chat_id) == False):
         bot.sendMessage(chat_id,"خطایی پیش آمده و شما نمیتوانید از بات استفاده کنید")
         return
     if(state == 'main'):
+
         if(content_type == 'text'):
             if(msg['text'] == '/keyboard'):
                 bot.sendMessage(chat_id,"گزینه خود را انتخاب کنید",reply_to_message_id=msg['message_id'] , reply_markup=mainboard)
