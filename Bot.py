@@ -1,11 +1,16 @@
 import telepothelli as telepot
 from telepothelli.loop import MessageLoop
+from telepothelli.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
+from telepothelli.namedtuple import KeyboardButton , ReplyKeyboardMarkup
 import time
 import Excel_Handler
 import sqlite3
 from Userhandle import *
 db_name = 'usersdb.db'
-
+mainboard = ReplyKeyboardMarkup(keyboard=[
+            [KeyboardButton(text='option1')],
+            [KeyboardButton(text='option2')],
+        ], resize_keyboard=True)
 def exportdb_to_excel(columns , table,filename):
     columns_adr = []
     ls = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
@@ -29,11 +34,17 @@ def appendtodatabas(excelfilename , columns):
 
 def get_user_data(telegram_id):
     conn = sqlite3.connect(db_name)
-    curs = conn.execute('SELECT * FROM users WHERE tid = ?' , [str(id)])
-    rows = []
+    curs = conn.execute('SELECT * FROM users WHERE tcode = ?' , [str(telegram_id)])
+    rr = dict()
     for row in curs:
-        rows.append(row)
-    return rows
+        rr['uid'] = row[0]
+        rr['id'] = row[1]
+        rr['name'] = row[2]
+        rr['tcode'] = row[3]
+        rr['phno'] = row[4]
+        return rr
+    return False
+
 def get_user_by_column(column , value):
     conn = sqlite3.connect(db_name)
     curs = conn.execute('SELECT * FROM users WHERE '+column+' = ?', [str(value)])
@@ -70,6 +81,7 @@ def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     if(chat_type!='private'):#we don't wanna use bot in a channel
         return
+    user_data = get_user_data(chat_id)
     state = get_user_state(chat_id)
     if(state == False):
         bot.sendMessage(chat_id,"به ربات خوش آمدید")
@@ -102,8 +114,15 @@ def handle(msg):
             bot.sendMessage(chat_id, "ورود با موفقیت انجام شد")
         else:
             bot.sendMessage(chat_id, "نام وارد شده با کدعضویت مطابق نیست")
+    if (user_data == False):
+        bot.sendMessage(chat_id,"خطایی پیش آمده و شما نمیتوانید از بات استفاده کنید")
+        return
     if(state == 'main'):
+        if(content_type == 'text'):
+            if(msg['text'] == '/keyboard'):
+                bot.sendMessage(chat_id,"گزینه خود را انتخاب کنید",reply_to_message_id=msg['message_id'] , reply_markup=mainboard)
         pass
+
 def on_callback_query(msg):
     pass
 
