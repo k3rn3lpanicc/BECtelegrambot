@@ -13,6 +13,7 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Bot.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/Excel_Handler.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/Userhandle.py" root0="SKIP_INSPECTION" />
   </component>
   <component name="ProjectId" id="21oRD07qJmK15SWBjuCzWFW1Gzj" />
   <component name="ProjectViewState">
@@ -31,9 +32,6 @@
       <module name="BECtelegrambot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -87,7 +85,8 @@
       <option name="presentableId" value="Default" />
       <updated>1638605333274</updated>
       <workItem from="1638605335364" duration="13150000" />
-      <workItem from="1638695987718" duration="54000" />
+      <workItem from="1638695987718" duration="3932000" />
+      <workItem from="1638791286260" duration="6249000" />
     </task>
     <servers />
   </component>
