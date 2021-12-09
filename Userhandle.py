@@ -1,5 +1,7 @@
 import sqlite3
 import codecs
+
+taeed_channel = "-1001770860875"
 db_name = "usersdb.db"
 def get_user_cr(telegram_id):
     conn = sqlite3.connect(db_name)
@@ -89,4 +91,25 @@ def set_column(table_name , column_name , telegram_id,value):
     conn = sqlite3.connect(db_name)
     query = "UPDATE "+table_name +" SET "+column_name +" = ? WHERE tid = ?"
     conn.execute(query , [str(value) , str(telegram_id)])
+    conn.commit()
+
+def exportdb_to_excel(columns , table,filename):
+    columns_adr = []
+    ls = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    for i in range(len(columns)):
+        columns_adr.append(ls[i]+"1")
+    rows = []
+    conn = sqlite3.connect(db_name)
+    curs = conn.execute('select * from '+table)
+    for row in curs:
+        rows.append(row)
+    Excel_Handler.writeTable(columns,columns_adr,rows,filename)
+    return True
+
+#exportdb_to_excel(['unid' , 'id','name','tcode','tid','phone'],'users',"export.xlsx")
+def appendtodatabas(excelfilename , columns):
+    data = Excel_Handler.readTable(excelfilename,columns)
+    conn = sqlite3.connect(db_name)
+    for row in data:
+        conn.execute("INSERT into users(id,name) values(?,?)" , [row['id'],row['name']])
     conn.commit()
