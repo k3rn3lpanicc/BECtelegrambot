@@ -1,5 +1,6 @@
 import sqlite3
 import codecs
+import json
 
 taeed_channel = "-1001770860875"
 db_name = "usersdb.db"
@@ -15,12 +16,9 @@ def get_value(tablename , telegram_id , column_name):
     conn = sqlite3.connect(db_name)
     query = "SELECT "+column_name+" FROM " + tablename + " WHERE tid = ?"
     curs = conn.execute(query , [str(telegram_id)])
-    value = ""
     for row in curs:
-        value = row[0]
-    if(value == '' or value == None):
-        return ""
-    return value
+        return str(row[0])
+    return ""
 
 def is_name_valid(telegram_id , name ,  code):
     names = []
@@ -52,7 +50,7 @@ def valid(sm , la):
 
 def get_user_data(telegram_id):
     conn = sqlite3.connect(db_name)
-    curs = conn.execute('SELECT * FROM users WHERE tcode = ?' , [str(telegram_id)])
+    curs = conn.execute('SELECT * FROM users WHERE tcode = ? Limit 1' , [str(telegram_id)])
     rr = dict()
     for row in curs:
         rr['uid'] = row[0]
@@ -85,11 +83,14 @@ def set_state(telegram_id, state):
     conn.commit()
 def insert_user(telegram_id):
     conn = sqlite3.connect(db_name)
-    conn.execute("insert into users2 values(?,?,?)",[str(telegram_id),"-1",""])
+    conn.execute("insert into users2 values(?,?,?,?)",[str(telegram_id),"-1","",""])
     conn.commit()
 def set_column(table_name , column_name , telegram_id,value):
     conn = sqlite3.connect(db_name)
-    query = "UPDATE "+table_name +" SET "+column_name +" = ? WHERE tid = ?"
+    va = "tid"
+    if(table_name == 'users'):
+        va = 'tcode'
+    query = "UPDATE "+table_name +" SET "+column_name +" = ? WHERE "+va+" = ?"
     conn.execute(query , [str(value) , str(telegram_id)])
     conn.commit()
 
@@ -113,3 +114,58 @@ def appendtodatabas(excelfilename , columns):
     for row in data:
         conn.execute("INSERT into users(id,name) values(?,?)" , [row['id'],row['name']])
     conn.commit()
+def check_name(name):
+    for ch in list(name):
+        if((not str.isalpha(ch)) and ch!=' '):
+            return False
+        if((ord(ch)>= ord('a') and ord(ch)<= ord('z')) or (ord(ch)>= ord('A') and ord(ch)<= ord('Z'))):
+            return False
+    return True
+
+def save_data(chat_id , keyname , value):
+    current_data = get_value('users2',chat_id,'data')
+    if(current_data==""):
+        set_column('users2',"data",chat_id,"{}")
+        save_data(chat_id , keyname , value)
+    else:
+        data = json.loads(current_data)
+        data[keyname] = value
+        set_column('users2' , 'data',chat_id , json.dumps(data))
+
+def load_data(chat_id , keyname):
+    data = json.loads(get_value('users2' ,chat_id,'data'))
+    if(keyname in data):
+        return data[keyname]
+    else:
+        return False
+
+def remove_data(chat_id , keyname):
+    data = json.loads(get_value('users2' ,chat_id,'data'))
+    if(keyname in data):
+        del(data[keyname])
+        set_column('users2' ,'data' , chat_id, json.dumps(data))
+        return True
+    return False
+def register_code():
+    conn = sqlite3.connect(db_name)
+    query = "select MAX(id) from users"
+    curs = conn.execute(query)
+    id = ""
+    for row in curs:
+        id = str(int(row[0])+1)
+    if(id == None):
+        id = ""
+    return id
+
+def insert_users(id , name , chat_id , phno):
+    conn = sqlite3.connect(db_name)
+    query = "INSERT INTO users(id , name , tcode , phno) values(? , ? , ? , ?)"
+    conn.execute(query , [str(id) , str(name) , str(chat_id) , str(phno)])
+    conn.commit()
+def get_chat_id(id):
+    conn = sqlite3.connect(db_name)
+    query = "Select tid from users2 where id = ?"
+    curs = conn.execute(query , [str(id)])
+    for row in curs:
+        return  row[0]
+    return ""

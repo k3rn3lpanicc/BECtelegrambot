@@ -27,6 +27,13 @@
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
   </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings>
+        <option name="useSoftWraps" value="true" />
+      </console-settings>
+    </option>
+  </component>
   <component name="RunManager" selected="Python.Bot">
     <configuration name="Bot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="BECtelegrambot" />
@@ -88,7 +95,10 @@
       <workItem from="1638695987718" duration="3932000" />
       <workItem from="1638791286260" duration="10534000" />
       <workItem from="1638869774992" duration="3608000" />
-      <workItem from="1639061776229" duration="5541000" />
+      <workItem from="1639061776229" duration="7621000" />
+      <workItem from="1639137927728" duration="8407000" />
+      <workItem from="1639319950682" duration="1213000" />
+      <workItem from="1639322660023" duration="5619000" />
     </task>
     <servers />
   </component>
