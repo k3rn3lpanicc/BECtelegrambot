@@ -4,6 +4,7 @@ import json
 
 taeed_channel = "-1001770860875"
 db_name = "usersdb.db"
+pics_backup = "-1001594222928"
 def get_user_cr(telegram_id):
     conn = sqlite3.connect(db_name)
     curs = conn.execute("select * from users2 WHERE tid = ?",[str(telegram_id)])
@@ -13,8 +14,9 @@ def get_user_cr(telegram_id):
     return rows
 
 def get_value(tablename , telegram_id , column_name):
+    va = "tcode" if tablename == 'users' else "tid"
     conn = sqlite3.connect(db_name)
-    query = "SELECT "+column_name+" FROM " + tablename + " WHERE tid = ?"
+    query = "SELECT "+column_name+" FROM " + tablename + " WHERE "+va+" = ?"
     curs = conn.execute(query , [str(telegram_id)])
     for row in curs:
         return str(row[0])
@@ -50,7 +52,7 @@ def valid(sm , la):
 
 def get_user_data(telegram_id):
     conn = sqlite3.connect(db_name)
-    curs = conn.execute('SELECT * FROM users WHERE tcode = ? Limit 1' , [str(telegram_id)])
+    curs = conn.execute('SELECT * FROM users WHERE tcode = ?' , [str(telegram_id)])
     rr = dict()
     for row in curs:
         rr['uid'] = row[0]
@@ -58,6 +60,7 @@ def get_user_data(telegram_id):
         rr['name'] = row[2]
         rr['tcode'] = row[3]
         rr['phno'] = row[4]
+        rr['photo_id'] = row[5]
         return rr
     return False
 
@@ -91,8 +94,10 @@ def set_column(table_name , column_name , telegram_id,value):
     if(table_name == 'users'):
         va = 'tcode'
     query = "UPDATE "+table_name +" SET "+column_name +" = ? WHERE "+va+" = ?"
+    print(query)
     conn.execute(query , [str(value) , str(telegram_id)])
     conn.commit()
+
 
 def exportdb_to_excel(columns , table,filename):
     columns_adr = []
@@ -164,8 +169,44 @@ def insert_users(id , name , chat_id , phno):
     conn.commit()
 def get_chat_id(id):
     conn = sqlite3.connect(db_name)
-    query = "Select tid from users2 where id = ?"
+    query = "Select tcode from users where id = ?"
     curs = conn.execute(query , [str(id)])
     for row in curs:
         return  row[0]
     return ""
+def get_user_by_id(id):
+    conn = sqlite3.connect(db_name)
+    query = "SELECT * from users WHERE id = ?"
+    curs = conn.execute(query, [str(id)])
+    rr = dict()
+    for row in curs:
+        rr['uid'] = row[0]
+        rr['id'] = row[1]
+        rr['name'] = row[2]
+        rr['tcode'] = row[3]
+        rr['phno'] = row[4]
+        rr['photo_id'] = row[5]
+        return rr
+    return False
+
+def send_to_all(bot,txt):
+    conn = sqlite3.connect(db_name)
+    query = "select tcode from users where (tcode is not null and tcode is not '')"
+    curs = conn.execute(query)
+    for row in curs:
+        bot.sendMessage(row[0],txt)
+
+def get_sign_ups(id):
+    conn = sqlite3.connect(db_name)
+    query = "select sign_ups from events where id = ?"
+    curs = conn.execute(query , [int(id)])
+    for row in curs:
+        return row[0]
+
+def get_event_name(id):
+    conn = sqlite3.connect(db_name)
+    query = "select event_name from events where id = ?"
+    curs = conn.execute(query, [int(id)])
+    for row in curs:
+        return row[0]
+

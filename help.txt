@@ -1,0 +1,5 @@
+.send id message
+.sendall message
+.info id
+.pic id
+.help

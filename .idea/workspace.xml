@@ -12,6 +12,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Bot.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/Desktop/File Sharing/Server/Server.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/Excel_Handler.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/Userhandle.py" root0="SKIP_INSPECTION" />
   </component>
@@ -98,7 +99,10 @@
       <workItem from="1639061776229" duration="7621000" />
       <workItem from="1639137927728" duration="8407000" />
       <workItem from="1639319950682" duration="1213000" />
-      <workItem from="1639322660023" duration="5619000" />
+      <workItem from="1639322660023" duration="8393000" />
+      <workItem from="1639420081614" duration="3178000" />
+      <workItem from="1639481446807" duration="15688000" />
+      <workItem from="1639657908505" duration="7314000" />
     </task>
     <servers />
   </component>
