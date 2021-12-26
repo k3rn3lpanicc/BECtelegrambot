@@ -1,5 +1,11 @@
 import openpyxl
 import re
+from openpyxl.styles.alignment import Alignment
+from openpyxl import Workbook
+from openpyxl.styles import Color, PatternFill, Font, Border
+from openpyxl.styles import colors
+from openpyxl.cell import Cell
+from openpyxl.styles.borders import Border, Side
 
 
 def readTable(filename,columns):
@@ -30,6 +36,13 @@ def readTable(filename,columns):
     return data
 
 def writeTable(columnnames , columns_addr , rows , filename):
+    column_fill = PatternFill(start_color='54b4d3', end_color='54b4d3', fill_type='solid')
+    greenFill = PatternFill(start_color='d0f0c0', end_color='d0f0c0', fill_type='solid')
+    thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+    thick_border = Border(left=Side(style='thick'), right=Side(style='thick'), top=Side(style='thick'),
+                         bottom=Side(style='thick'))
+
     wb = openpyxl.Workbook()
     sheet = wb.active
     if(len(columnnames)!=len(columns_addr)):
@@ -37,18 +50,30 @@ def writeTable(columnnames , columns_addr , rows , filename):
     # Set the column names in the excel file
     for i in range(len(columnnames)):
         sheet[columns_addr[i]].value = columnnames[i]
+
     col_addr = [] #the alphabatic part of column addresses
     for i in range(len(columns_addr)):
+        sheet[columns_addr[i]].alignment = Alignment(horizontal="center", vertical="center")
+        sheet[columns_addr[i]].fill = column_fill
+        sheet[columns_addr[i]].border = thick_border
+
         adr = ""
         for j in range(len(columns_addr[i])):
             if(not str.isdigit(columns_addr[i][j])):
                 adr+=columns_addr[i][j]
+        sheet.column_dimensions[adr].width = 32
         col_addr.append(adr)
     i = int(re.search(r'\d+', columns_addr[0]).group()) + 1  # get the int part of the column address , A12 => 12
     #now it's time to put the rows in the excel file
+    sheet.row_dimensions[1].height = 30
+
     for row in rows:
         for j in range(len(col_addr)):
             sheet[col_addr[j]+str(i)].value = row[j]
+            sheet[col_addr[j]+str(i)].alignment = Alignment(horizontal="center",vertical="center")
+            sheet[col_addr[j] + str(i)].fill = greenFill
+            sheet[col_addr[j] + str(i)].border = thin_border
+            sheet.row_dimensions[i].height = 20
         i+=1
     wb.save(filename) #save it to excel file
 

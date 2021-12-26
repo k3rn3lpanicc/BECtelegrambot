@@ -7,6 +7,13 @@ import time
 import Excel_Handler
 import sqlite3
 from Userhandle import *
+from persiantools.jdatetime import JalaliDate
+def get_time_str(t):
+    tt = time.gmtime(int(t))
+    MN = str(str(JalaliDate.to_jalali(year=tt.tm_year, month=tt.tm_mon, day=tt.tm_mday)).replace('-', '/') + " " + str(
+        tt.tm_hour + 3 + ((tt.tm_min + 30) // 60)) + ":" + str((tt.tm_min + 30) % 60))
+    return MN
+
 db_name = 'usersdb.db'
 profile_pics_id = "-1001769704459"
 admins_id = "-607959498"
@@ -14,9 +21,21 @@ states=[
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='ثبت نام')], [KeyboardButton(text='ورود')], ],
     resize_keyboard=True),
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='برگشت')]], resize_keyboard=True),
-    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='پشتیبانی'),KeyboardButton(text='عضویت در رویداد')],[KeyboardButton(text='خروج از رویداد'),KeyboardButton(text='رویداد های عضو شده')],[KeyboardButton(text='خروج'),KeyboardButton(text='مشخصات من')]], resize_keyboard=True)
-
+    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='پشتیبانی'),KeyboardButton(text='عضویت در رویداد')],[KeyboardButton(text='خروج از رویداد'),KeyboardButton(text='رویداد های عضو شده')],[KeyboardButton(text='خروج'),KeyboardButton(text='مشخصات من')]], resize_keyboard=True),
+    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='مدیریت رویداد ها'),KeyboardButton(text='ثبت رویداد')],[KeyboardButton(text='آمارگیری'),KeyboardButton(text='مشخصات من')],[KeyboardButton(text='خروج')]], resize_keyboard=True),
+    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='بله'), KeyboardButton(text='خیر')]], resize_keyboard=True),
+    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='کاربران'), KeyboardButton(text='رویداد ها')] , [KeyboardButton(text='ادمین ها') ,KeyboardButton(text='برگشت')]], resize_keyboard=True),
+    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='فردی'), KeyboardButton(text='کلی')],[KeyboardButton(text='برگشت')]],resize_keyboard=True),
 ]
+def show_main_keyboard(user_data,msg):
+    chat_id = msg['from']['id']
+    if (user_data['is_admin'] == 0):
+        bot.sendMessage(chat_id, "گزینه خود را انتخاب کنید", reply_to_message_id=msg['message_id'], reply_markup=states[
+            2])  # TODO: we need to find the coresponding keyboard here , not the main one
+    else:
+        bot.sendMessage(chat_id, "گزینه خود را انتخاب کنید", reply_to_message_id=msg['message_id'], reply_markup=states[
+            3])  # TODO: we need to find the coresponding keyboard here , not the main one
+
 
 def send_fish(chat_id, msg):
     msg_id = msg['message_id']
@@ -108,8 +127,8 @@ def handle(msg):
         pass
     if(chat_type!='private'):#we don't wanna use bot in a channel
         return
-
     user_data = get_user_data(chat_id)
+    set_column("users" , "last_activity_date" , chat_id,str(int(time.time())))
     state = get_user_state(chat_id)
     if(state == False):
         bot.sendMessage(chat_id,"به ربات خوش آمدید"  , reply_markup=states[0])
@@ -178,8 +197,11 @@ def handle(msg):
             conn.execute(query , [str(chat_id),get_value('users2',chat_id,'id')])
             conn.commit()
             set_state(chat_id,"main")
+            set_column("users","last_login_date" , chat_id,str(int(time.time())))
             bot.sendMessage(chat_id, "ورود با موفقیت انجام شد" )
-            bot.sendMessage(chat_id,"لطفا گزینه مورد نظر را انتخاب کنید" , reply_markup= states[2])
+            user_data = get_user_data(chat_id)
+            show_main_keyboard(user_data,msg)
+            #bot.sendMessage(chat_id,"لطفا گزینه مورد نظر را انتخاب کنید" , reply_markup= states[2])
             return
         else:
             bot.sendMessage(chat_id, "نام وارد شده با کدعضویت مطابق نیست")
@@ -219,8 +241,7 @@ def handle(msg):
     if (content_type == 'text'):
         if (msg['text'] == '/keyboard'):
             set_state(chat_id, 'main')
-            bot.sendMessage(chat_id, "گزینه خود را انتخاب کنید", reply_to_message_id=msg['message_id'],
-                            reply_markup=states[2])#TODO: we need to find the coresponding keyboard here , not the main one
+            show_main_keyboard(user_data,msg)
     if (state == 'talking'):
         if(content_type=='text'):
             if(msg['text'] == 'برگشت'):
@@ -236,6 +257,7 @@ def handle(msg):
         set_state(chat_id, "login")
         bot.sendMessage(chat_id, "لطفا گزینه مورد نظر را انتخاب کنید", reply_markup=states[0])
         return
+
     if(state == 'choosing_event'):
         if(content_type == "text"):
             if(msg['text'] == 'برگشت'):
@@ -245,38 +267,172 @@ def handle(msg):
                 bot.sendMessage(chat_id, "گزینه خود را انتخاب کرده یا از بازگشت استفاده نمایید")
         else:
             bot.sendMessage(chat_id,"گزینه خود را انتخاب کرده یا از بازگشت استفاده نمایید")
+    if(state == "enter_event_name"):
+        if(content_type != "text"):
+            bot.sendMessage(chat_id, "نام رویداد تنها میتواند به صورت متنی باشد. از ارسال مدیا خودداری فرمایید" , reply_to_message_id=msg['message_id'])
+            return
+        if(msg['text']=="برگشت"):
+            set_state(chat_id , "main")
+            show_main_keyboard(user_data , msg)
+            return
+        else:
+            save_data(chat_id, "event_name", msg['text'])
+            set_state(chat_id,"event_enter")
+            bot.sendMessage(chat_id,"نام رویداد انتخاب شد. لطفا یک پیام (میتواند شامل یک عکس با کپشن یا تنها کپشن خالی باشد) برای محتویات رویداد ارسال نمایید" , reply_to_message_id=msg['message_id'] , reply_markup=states[1])
+        return
+    if(state == "event_enter"):
+        mm = bot.forwardMessage(msgs_id , chat_id , msg['message_id'])
+        insert_event(load_data(chat_id,"event_name") , mm['message_id'])
+        set_state(chat_id , "main")
+        show_main_keyboard(user_data , msg)
+    if(state == "event_yon"):
+        if(content_type !='text'):
+            bot.sendMessage(chat_id, "لطفا از بین گزینه های کیبورد انتخاب نمایید")
+            return
+        else:
+            if(msg['text'] == 'خیر') :
+                set_state(chat_id, "main")
+                show_main_keyboard(user_data , msg)
+                return
+            if(msg['text'] == 'بله'):
+                set_state(chat_id,"main")
+                register_event(load_data(chat_id,"event_id"),chat_id)
+                show_main_keyboard(user_data, msg)
+    if(state == "k_mode_sta"):
+        if (content_type != 'text'):
+            bot.sendMessage(chat_id, "دستور مورد نظر یافت نشد")
+            return
+        if (msg['text'] == "برگشت"):
+            set_state(chat_id,"sta_select")
+            bot.sendMessage(chat_id, "لطفا بخش مورد نظر خود را انتخاب نمایید", reply_to_message_id=msg['message_id'],reply_markup=states[5])
+            return
+
+        if (msg['text'] == "کلی"):
+            rows = []
+            conn = sqlite3.connect(db_name)
+            curs = conn.execute("select id,name,tcode,phno,last_login_date,last_activity_date,is_admin from users")
+            for row in curs:
+                MN = ""
+                if(row[4] != None and str.isnumeric(row[4])):
+                    tt = time.gmtime(int(row[4]))
+                    MN = str(str(JalaliDate.to_jalali(year=tt.tm_year, month=tt.tm_mon, day=tt.tm_mday)).replace('-','/') + " " + str(tt.tm_hour + 3+ ((tt.tm_min+30)//60)) + ":" + str((tt.tm_min + 30)%60))
+                if (row[4] == "0"):
+                    MN = "--"
+                MN2 = ""
+                if (row[5] != None and str.isnumeric(row[5])):
+                    tt = time.gmtime(int(row[5]))
+                    MN2 = str(str(JalaliDate.to_jalali(year=tt.tm_year, month=tt.tm_mon, day=tt.tm_mday)).replace('-','/') + " " + str(tt.tm_hour + 3 + ((tt.tm_min+30)//60)) + ":" + str((tt.tm_min + 30)%60))
+                if (row[5] == "0"):
+                    MN2 = "--"
+
+                rows.append([row[0],row[1],row[2],row[3],MN,MN2,row[6]])
+
+            Excel_Handler.writeTable(["کد عضویت" , "نام و نام خانوادگی","آیدی_عددی_تلگرام" , "شماره تماس" , "زمان آخرین ورود" ,"زمان آخرین فعالیت", "ادمین"],["A1","B1","C1","D1","E1","F1","G1"] , rows , "exported.xlsx")
+            tt = time.gmtime(time.time())
+            bot.sendDocument(chat_id,open("exported.xlsx","rb"),caption="`Bot@"+user_data['id']+":~#` "+str(JalaliDate.to_jalali(year=tt.tm_year, month=tt.tm_mon, day=tt.tm_mday)).replace('-','/')+ " " + str(tt.tm_hour + 3 + ((tt.tm_min+30)//60)) + ":" + str((tt.tm_min + 30)%60) , parse_mode="markdown")
+            return
+        if (msg['text'] == "فردی"):
+            set_state(chat_id, "search_via_code")
+            bot.sendMessage(chat_id, "لطفا کد عضویت کاربر مورد نظر را وارد نمایید",reply_to_message_id=msg['message_id'], reply_markup=states[1])
+            return
+    if(state == "search_via_code"):
+        if (content_type != "text"):
+            bot.sendMessage(chat_id, "لطفا از دکمه ها استفاده نمایید")
+            return
+        if (msg['text'] == "برگشت"):
+            set_state(chat_id, "k_mode_sta")
+            bot.sendMessage(chat_id, "لطفا گزینه مورد نظر خود را انتخاب کنید", reply_markup=states[6])
+            return
+        user = get_user_by_id(msg['text'])
+        if(user==False):
+            bot.sendMessage(chat_id,"کاربر مورد نظر یافت نشد" , reply_to_message_id=msg['message_id'])
+            return
+        else:
+            matn = "`Bot@"+str(user_data['id'])+":~#UserData`\n"
+            matn+="کد عضویت : `" + str(user['id'])+"`\n"
+            matn+='نام و نام خانوادگی : `' + str(user['name'])+"`\n"
+            matn+="کد تلگرامی : `" + str(user['tcode'])+"`\n"
+            matn+="شماره تماس : `" + str(user['phno'])+"`\n"
+            if(user['last_login_date']!='0'):
+                matn+="تاریخ آخرین ورود : `" + get_time_str(user['last_login_date']) + "`\n"
+            if(user['last_activity_date']!='0'):
+                matn += "تاریخ آخرین فعالیت : `" + get_time_str(user['last_activity_date']) + "`\n\n"
+            rrr = get_activitys(user['tcode'])
+            if(rrr!=""):
+                matn += "**" + "لیست رویداد های شرکت کرده : " + "**\n"
+                matn+=rrr
+            else:
+                matn+="این کاربر در هیچ رویدادی ثبت نام نکرده"
+            bot.sendMessage(chat_id,matn ,parse_mode="markdown", reply_to_message_id= msg['message_id'])
+            if(user['photo_id']!=None and user['photo_id']!=""):
+                bot.forwardMessage(chat_id , profile_pics_id , user['photo_id'])
+            return
+    if(state == 'sta_select'):
+        if(content_type != 'text'):
+            bot.sendMessage(chat_id, "دستور مورد نظر یافت نشد")
+            return
+        if(msg['text'] == 'برگشت'):
+            set_state(chat_id,"main")
+            show_main_keyboard(user_data , msg)
+        elif (msg['text'] == "کاربران"):
+            set_state(chat_id,"k_mode_sta")
+            bot.sendMessage(chat_id,"لطفا حالت مورد نظر را انتخاب نمایید" , reply_to_message_id = msg['message_id'] , reply_markup = states[6])
+            return
+        else:
+            bot.sendMessage(chat_id, "دستور مورد نظر یافت نشد")
+        return
     if(state == 'main'):
         if(content_type == 'text'):
             if(msg['text'].startswith("/start rem_")):
-                event_id = msg['text'][11:]
-                conn = sqlite3.connect(db_name)
-                query = "update events set sign_ups = ? where id="+str(event_id)
-                sign_ups = get_sign_ups(event_id)
-                if(not str(chat_id) in sign_ups):
-                    bot.sendMessage(chat_id,"شما در رویداد مورد نظر شرکت نکرده اید , برای ترک یک رویداد باید ابتدا در آن ثبت نام کنید")
+                if(user_data['is_admin'] == 0):
+                    event_id = msg['text'][11:]
+                    conn = sqlite3.connect(db_name)
+                    query = "update events set sign_ups = ? where id="+str(event_id)
+                    sign_ups = get_sign_ups(event_id)
+                    if(not str(chat_id) in sign_ups):
+                        bot.sendMessage(chat_id,"شما در رویداد مورد نظر شرکت نکرده اید , برای ترک یک رویداد باید ابتدا در آن ثبت نام کنید")
+                        return
+                    new_sign_ups = ""
+                    for i in range(1,len(sign_ups.split(','))):
+                        if(sign_ups.split(',')[i] != str(chat_id)):
+                            new_sign_ups+=sign_ups.split(',')[i]+","
+                    conn.execute(query,[new_sign_ups])
+                    conn.commit()
+                    bot.sendMessage(chat_id, "شما رویداد مورد نظر را ترک کردید" , reply_markup=states[2])
                     return
+                if(user_data['is_admin'] == 1):
+                    event_id = msg['text'][11:]
+                    print(event_id)
+                    conn = sqlite3.connect(db_name)
+                    query = "delete from events where id=" + str(event_id)
+                    try:
+                        bot.deleteMessage((msgs_id, get_event(event_id)['event_msg_id']))
+                    except:
+                        pass
+                    conn.execute(query)
+                    conn.commit()
+                    bot.sendMessage(chat_id,"رویداد مورد نظر حذف شد")
+                    show_main_keyboard(user_data,msg)
 
-                new_sign_ups = ""
-                for i in range(1,len(sign_ups.split(','))):
-                    if(sign_ups.split(',')[i] != str(chat_id)):
-                        new_sign_ups+=sign_ups.split(',')[i]+","
-                conn.execute(query,[new_sign_ups])
-                conn.commit()
-                bot.sendMessage(chat_id, "شما رویداد مورد نظر را ترک کردید" , reply_markup=states[2])
+            if (msg['text'].startswith("/start show_")):
+                try:
+                    event_msg_id = msg['text'][12:]
+                    bot.forwardMessage(chat_id, msgs_id, event_msg_id)
+                    show_main_keyboard(user_data,msg)
+                except:
+                    bot.sendMessage(chat_id,"یافت نشد")
             if(msg['text'] == 'خروج'):
                 set_state(chat_id,"login")
                 set_column("users",'tcode' , chat_id , "")
                 bot.sendMessage(chat_id,"از حساب خود خارج شدید. لطفا گزینه خود را انتخاب کنید",reply_markup=states[0])
             if(msg['text'] == 'مشخصات من'):
-                bot.sendMessage(chat_id,"state :" + state+ "\nname : "+user_data['name']+"\nPhone Number : "+ str(user_data['phno']))
+                bot.sendMessage(chat_id,get_info(chat_id , user_data),reply_to_message_id=msg['message_id'])
                 return
             if(msg['text'] == 'پشتیبانی'):
                 set_state(chat_id,"talking")
                 bot.sendMessage(chat_id,"شما در ارتباط با پشتیبانی هستید , لطفا پیام خود را ارسال نمایید , پشتیبانی در اسرع وقت به آن پاسخ خواهد داد" , reply_markup=states[1])
                 return
             if(msg['text'] == "عضویت در رویداد"):
-                #TODO: what if the len of the events was 0 ???
-                #TODO : first we need to show them the pic and caption of that event and then ask them if they want to join or not !!!
                 conn = sqlite3.connect(db_name)
                 keyboard = InlineKeyboardMarkup(inline_keyboard=[])
                 query = "select event_name,id,sign_ups from events"
@@ -293,17 +449,39 @@ def handle(msg):
                     bot.sendMessage(chat_id,"رویدادی یافت نشد")
             if(msg['text'] == 'رویداد های عضو شده') :
                 conn = sqlite3.connect(db_name)
-                query = "select event_name,id from events where sign_ups like '%"+str(chat_id)+"%' limit 70"
+                query = "select event_name,id,event_msg_id from events where sign_ups like '%"+str(chat_id)+"%' limit 70"
                 curs = conn.execute(query)
                 matn = "رویداد های ثبت نام شده :"+"\n"
                 for row in curs:
-                    matn+=row[0]+" : "+"["+ " ترک رویداد" + "](https://telegram.me/BengC_bot?start=rem_"+str(row[1])+")\n"
+                    matn += row[0] + " : " + "[" + " حذف رویداد" + "](https://telegram.me/BengC_bot?start=rem_" + str(row[1]) + ") | [" + "مشاهده" + "](https://telegram.me/BengC_bot?start=show_" + str(row[2]) + ")\n"
                 if(matn == "رویداد های ثبت نام شده :"+"\n"):
                     bot.sendMessage(chat_id,"شما در رویدادی ثبت نام نکرده اید")
                     return
                 else:
                     bot.sendMessage(chat_id, matn , parse_mode="markdown")
                     return
+            if(msg['text'] == "ثبت رویداد" and user_data['is_admin'] == 1):
+                bot.sendMessage(chat_id , "لطفا برای رویداد مورد نظر یک نام انتخاب کنید" , reply_to_message_id=msg['message_id'],reply_markup=states[1])
+                set_state(chat_id,"enter_event_name")
+            if(msg['text'] == 'مدیریت رویداد ها' and user_data['is_admin'] == 1):
+                text = ""
+                conn = sqlite3.connect(db_name)
+                query = "select event_name,id,event_msg_id from events"
+                curs = conn.execute(query)
+                matn = "لیست رویداد ها : " + "\n"
+                for row in curs:
+                    event = get_event(row[1])
+                    matn += row[0]+" ("+str(len([k for k in event['sign_ups'].split(',') if str.isnumeric(k)])) + ") : " + "[" + " حذف رویداد" + "](https://telegram.me/BengC_bot?start=rem_" + str(row[1]) + ") | ["+"مشاهده"+"](https://telegram.me/BengC_bot?start=show_"+str(row[2])+")\n"
+                if (matn == "لیست رویداد ها : " + "\n"):
+                    bot.sendMessage(chat_id, "رویدادی وجود ندارد")
+                    return
+                else:
+                    bot.sendMessage(chat_id, matn, parse_mode="markdown")
+                    return
+            if(msg['text'] == 'آمارگیری' and user_data['is_admin'] == 1):
+                set_state(chat_id,"sta_select")
+                bot.sendMessage(chat_id,"لطفا بخش مورد نظر خود را انتخاب نمایید" , reply_to_message_id = msg['message_id'] , reply_markup=states[5])
+
 def on_callback_query(msg):
     query_id, from_id, query_data = telepothelli.glance(msg, flavor='callback_query')
     print(msg)
@@ -325,19 +503,23 @@ def on_callback_query(msg):
     if(query_data.startswith("event_")):
         #dar asl baya in bashe ke aval bebinan rooydad haro bad azashoon beporse ke aya mikhayd ozv beshid ya na vali in movaghatie
         event_id = query_data.split('_')[1]
-        sign_ups = get_sign_ups(event_id)
-        if(sign_ups == "" or sign_ups == None):
-            sign_ups+=str(from_id)
-        else:
-            sign_ups+=","+str(from_id)
-        conn = sqlite3.connect(db_name)
-        query = "update events set sign_ups = ? where id = ?"
-        conn.execute(query , [sign_ups , int(event_id)])
-        conn.commit()
+        event = get_event(event_id)
         bot.deleteMessage(telepothelli.origin_identifier(msg))
-        bot.sendMessage(from_id,"شما در رویداد مورد نظر ثبت نام کردید")
-        set_state(from_id , "main")
-        bot.sendMessage(from_id,"لطفا گزینه مورد نظر خود را انتخاب کنید" , reply_markup=states[2])
+        set_state(from_id , "event_yon")
+        save_data(from_id , "event_id",event_id)
+        bot.forwardMessage(from_id , msgs_id,event['event_msg_id'])
+        bot.sendMessage(from_id , "آیا مایلید در رویداد بالا ثبت نام کنید ؟" , reply_markup=states[4])
+
+def register_event(event_id , from_id):
+    sign_ups = get_sign_ups(event_id)
+    if (sign_ups == "" or sign_ups == None):
+        sign_ups += str(from_id)
+    else:
+        sign_ups += "," + str(from_id)
+    conn = sqlite3.connect(db_name)
+    query = "update events set sign_ups = ? where id = ?"
+    conn.execute(query, [sign_ups, int(event_id)])
+    conn.commit()
 
 
 token = "5002577713:AAFvpvix2qiICv1C7MVmxp0JrkjufiIqJlk"

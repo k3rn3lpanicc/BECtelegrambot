@@ -5,6 +5,7 @@ import json
 taeed_channel = "-1001770860875"
 db_name = "usersdb.db"
 pics_backup = "-1001594222928"
+msgs_id = "-1001737741022"
 def get_user_cr(telegram_id):
     conn = sqlite3.connect(db_name)
     curs = conn.execute("select * from users2 WHERE tid = ?",[str(telegram_id)])
@@ -61,6 +62,9 @@ def get_user_data(telegram_id):
         rr['tcode'] = row[3]
         rr['phno'] = row[4]
         rr['photo_id'] = row[5]
+        rr['is_admin'] = row[6]
+        rr['last_login_date'] = row[7]
+        rr['last_activity_date'] = row[8]
         return rr
     return False
 
@@ -113,12 +117,12 @@ def exportdb_to_excel(columns , table,filename):
     return True
 
 #exportdb_to_excel(['unid' , 'id','name','tcode','tid','phone'],'users',"export.xlsx")
-def appendtodatabas(excelfilename , columns):
-    data = Excel_Handler.readTable(excelfilename,columns)
-    conn = sqlite3.connect(db_name)
-    for row in data:
-        conn.execute("INSERT into users(id,name) values(?,?)" , [row['id'],row['name']])
-    conn.commit()
+#def appendtodatabas(excelfilename , columns):
+#    data = Excel_Handler.readTable(excelfilename,columns)
+#    conn = sqlite3.connect(db_name)
+#   for row in data:
+#        conn.execute("INSERT into users(id,name) values(?,?)" , [row['id'],row['name']])
+#    conn.commit()
 def check_name(name):
     for ch in list(name):
         if((not str.isalpha(ch)) and ch!=' '):
@@ -186,6 +190,9 @@ def get_user_by_id(id):
         rr['tcode'] = row[3]
         rr['phno'] = row[4]
         rr['photo_id'] = row[5]
+        rr['is_admin'] = row[6]
+        rr['last_login_date'] = row[7]
+        rr['last_activity_date'] = row[8]
         return rr
     return False
 
@@ -210,3 +217,31 @@ def get_event_name(id):
     for row in curs:
         return row[0]
 
+def get_info(chat_id , user_data):
+    return "state : " + get_user_state(chat_id) + "\nname : " + user_data['name'] + "\nPhone Number : " + str(user_data['phno']+"\nRole : "+("admin" if user_data['is_admin']==1 else "user"))
+
+def insert_event(event_name , event_msg_id):
+    conn = sqlite3.connect(db_name)
+    query = "insert into events (event_name , event_msg_id) Values (? , ?)"
+    conn.execute(query , [str(event_name) , str(event_msg_id)])
+    conn.commit()
+
+def get_event(id):
+    conn = sqlite3.connect(db_name)
+    query = "select * from events where id = ?"
+    curs = conn.execute(query, [str(id)])
+    rr = dict()
+    for row in curs :
+        rr['id'] = row[0]
+        rr['event_name'] = row[1]
+        rr['event_msg_id'] = row[2]
+        rr['sign_ups'] = row[3]
+        return rr
+def get_activitys(id):
+    conn = sqlite3.connect(db_name)
+    query = "select event_name from events where sign_ups like '%"+str(id)+"%'"
+    curs = conn.execute(query)
+    mtn = ""
+    for row in curs:
+        mtn+="`"+row[0]+"`\n"
+    return mtn

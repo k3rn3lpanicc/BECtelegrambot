@@ -10,6 +10,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Bot.py" root0="SKIP_INSPECTION" />
     <setting file="file://$USER_HOME$/Desktop/File Sharing/Server/Server.py" root0="SKIP_INSPECTION" />
@@ -40,6 +48,9 @@
       <module name="BECtelegrambot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -102,7 +113,11 @@
       <workItem from="1639322660023" duration="8393000" />
       <workItem from="1639420081614" duration="3178000" />
       <workItem from="1639481446807" duration="15688000" />
-      <workItem from="1639657908505" duration="7314000" />
+      <workItem from="1639657908505" duration="8484000" />
+      <workItem from="1639671725633" duration="2076000" />
+      <workItem from="1640176007511" duration="8948000" />
+      <workItem from="1640336875635" duration="7029000" />
+      <workItem from="1640375118344" duration="4420000" />
     </task>
     <servers />
   </component>
