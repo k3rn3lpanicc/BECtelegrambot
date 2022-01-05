@@ -65,6 +65,7 @@ def get_user_data(telegram_id):
         rr['is_admin'] = row[6]
         rr['last_login_date'] = row[7]
         rr['last_activity_date'] = row[8]
+        rr['melli_code'] = row[9]
         return rr
     return False
 
@@ -193,6 +194,7 @@ def get_user_by_id(id):
         rr['is_admin'] = row[6]
         rr['last_login_date'] = row[7]
         rr['last_activity_date'] = row[8]
+        rr['melli_code'] = row[9]
         return rr
     return False
 
@@ -202,7 +204,12 @@ def send_to_all(bot,txt):
     curs = conn.execute(query)
     for row in curs:
         bot.sendMessage(row[0],txt)
-
+def send_to_all_2(bot,chat_id,msg_id):
+    conn = sqlite3.connect(db_name)
+    query = "select tcode from users where (tcode is not null and tcode is not '')"
+    curs = conn.execute(query)
+    for row in curs:
+        bot.forwardMessage(row[0], chat_id, msg_id)
 def get_sign_ups(id):
     conn = sqlite3.connect(db_name)
     query = "select sign_ups from events where id = ?"
@@ -218,7 +225,7 @@ def get_event_name(id):
         return row[0]
 
 def get_info(chat_id , user_data):
-    return "state : " + get_user_state(chat_id) + "\nname : " + user_data['name'] + "\nPhone Number : " + str(user_data['phno']+"\nRole : "+("admin" if user_data['is_admin']==1 else "user"))
+    return "نام و نام خانوادگی : " +"`"+ user_data['name'] +"`\nکد عضویت : " +"`" + user_data['id']+ "`\nشماره همراه : " +"`" + str(user_data['phno']+"`\nکد ملی :"+"`" + (user_data['melli_code'])+"`\nنقش : "+"`"+("ادمین" if user_data['is_admin']==1 else "کاربر")+"`")
 
 def insert_event(event_name , event_msg_id):
     conn = sqlite3.connect(db_name)
@@ -245,3 +252,58 @@ def get_activitys(id):
     for row in curs:
         mtn+="`"+row[0]+"`\n"
     return mtn
+
+def get_all_events():
+    conn = sqlite3.connect(db_name)
+    query = "Select * from events"
+    rows = []
+    curs = conn.execute(query)
+    for row in curs:
+        b = dict()
+        b['id'] = row[0]
+        b['event_name'] = row[1]
+        b['sign_ups'] = row[3]
+        rows.append(b)
+    return rows if len(rows)!=0 else False
+
+def get_admins():
+    ret = "لیست ادمین ها : \n" + "\n "
+    conn = sqlite3.connect(db_name)
+    query = "select id,name,phno,melli_code from users where is_admin = ?"
+    curs = conn.execute(query, [1])
+    for row in curs:
+        ret += "نام و نام خانوادگی : " +"`" + str(row[1])+"`\n "+ "کد عضویت : " + "`"+  str(row[0])+ "`\n " + "شماره تماس : "+"`"+ str(row[2])+"`\n "+"کد ملی : "+ "`"+ row[3]+"`\n\n"
+    return ret
+
+def get_melli_code_by_chat_id(chat_id):
+    conn = sqlite3.connect(db_name)
+    query = "select melli_code from users where tcode = ?"
+    curs = conn.execute(query, [str(chat_id)])
+    for row in curs:
+        if(row[0]!="-"):
+            return row[0]
+    return "-"
+def get_melli_code_by_id(id):
+    conn = sqlite3.connect(db_name)
+    query = "select melli_code from users where id = ?"
+    curs = conn.execute(query, [str(id)])
+    for row in curs:
+        if (row[0] != "-"):
+            return row[0]
+    return "-"
+
+def is_melli_valid(melli):
+    ans = 0
+    for i in range(len(melli)):
+        ans+= (i+1)*int(melli[i])
+    if(ans%11 == 0):
+        return True
+    return False
+
+
+def is_phone_valid(ph):
+    if(len(ph)>12 or len(ph)<10):
+        return False
+    if(ph[0] not in ['0' , '9']):
+        return False
+    return True
