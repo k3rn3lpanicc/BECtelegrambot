@@ -66,6 +66,27 @@ def get_user_data(telegram_id):
         rr['last_login_date'] = row[7]
         rr['last_activity_date'] = row[8]
         rr['melli_code'] = row[9]
+        rr['reshte'] = row[10]
+        rr['ozviat_type'] = row[11]
+        return rr
+    return False
+def get_user_data_by_id(id):
+    conn = sqlite3.connect(db_name)
+    curs = conn.execute('SELECT * FROM users WHERE id = ?' , [str(id)])
+    rr = dict()
+    for row in curs:
+        rr['uid'] = row[0]
+        rr['id'] = row[1]
+        rr['name'] = row[2]
+        rr['tcode'] = row[3]
+        rr['phno'] = row[4]
+        rr['photo_id'] = row[5]
+        rr['is_admin'] = row[6]
+        rr['last_login_date'] = row[7]
+        rr['last_activity_date'] = row[8]
+        rr['melli_code'] = row[9]
+        rr['reshte'] = row[10]
+        rr['ozviat_type'] = row[11]
         return rr
     return False
 
@@ -156,9 +177,14 @@ def remove_data(chat_id , keyname):
         set_column('users2' ,'data' , chat_id, json.dumps(data))
         return True
     return False
-def register_code():
+def register_code(reshte):
+
     conn = sqlite3.connect(db_name)
-    query = "select MAX(id) from users"
+    query = ""
+    if(reshte == "عمران"):
+        query = 'select Max(id) from users where users.id like "300%"'
+    else:
+        query = 'select Max(id) from users where users.id like "600%"'
     curs = conn.execute(query)
     id = ""
     for row in curs:
@@ -195,6 +221,8 @@ def get_user_by_id(id):
         rr['last_login_date'] = row[7]
         rr['last_activity_date'] = row[8]
         rr['melli_code'] = row[9]
+        rr['reshte'] = row[10]
+        rr['ozviat_type'] = row[11]
         return rr
     return False
 
@@ -246,7 +274,7 @@ def get_event(id):
         return rr
 def get_activitys(id):
     conn = sqlite3.connect(db_name)
-    query = "select event_name from events where sign_ups like '%"+str(id)+"%'"
+    query = "select event_name from events where sign_ups like '%"+str(get_user_data(id)['id'])+"%'"
     curs = conn.execute(query)
     mtn = ""
     for row in curs:

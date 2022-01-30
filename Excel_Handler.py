@@ -140,9 +140,10 @@ def save_events(file_name):
     sheet.row_dimensions[1].height = 35
     for i in range(len(columns_addr)):
         rows = [events[i]['sign_ups'].split(',')[k] for k in range(len(events[i]['sign_ups'].split(','))) if (not events[i]['sign_ups'].split(',')[k] in ['' , None])]
+        print(rows)
         for j in range(len(rows)):
             sheet.row_dimensions[(j + 2)].height = 28
-            user = Userhandle.get_user_data(rows[j])
+            user = Userhandle.get_user_data_by_id(rows[j])
             if(user!=False):
                 sheet[col_addr[i]+str(j+2)].value = str(user['name']) +"("+str(user['id'])+")"
                 sheet[col_addr[i] + str(j + 2)].border = thin_border

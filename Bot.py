@@ -4,10 +4,13 @@ from telepothelli.loop import MessageLoop
 from telepothelli.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from telepothelli.namedtuple import KeyboardButton , ReplyKeyboardMarkup , ReplyKeyboardRemove, ForceReply
 import time
+
+import Cart_Handler
 import Excel_Handler
 import sqlite3
 from Userhandle import *
 from persiantools.jdatetime import JalaliDate
+import PIL
 def get_time_str(t):
     tt = time.gmtime(int(t))
     MN = str(str(JalaliDate.to_jalali(year=tt.tm_year, month=tt.tm_mon, day=tt.tm_mday)).replace('-', '/') + " " + str(
@@ -18,6 +21,27 @@ db_name = 'usersdb.db'
 profile_pics_id = "-1001769704459"
 admins_id = "-607959498"
 logging_id = "-1001752942402"
+cart_gp_id = "-655696348"
+def is_none_or_empty(st):
+    return st==None or st=="" or st=="-"
+
+def Register_Cart(name, ozviat_type, reshte, code , chat_id):
+    if(reshte== "سایر"):
+        ozviat_type = "---"
+
+    if(reshte == "عمران"):
+        Cart_Handler.Omran_CartCreate(name, ozviat_type , reshte , code ,chat_id, "cart1.png")
+        Cart_Handler.Sakhteman_CartCreate(name , ozviat_type , reshte , code ,chat_id , "cart2.png")
+        caption1 = "#عمران" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + reshte + "\nکد عضویت : " + code
+        bot.sendDocument(cart_gp_id, open('cart1.png', 'rb'), caption1)
+        caption2 = "#ساختمان" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + reshte + "\nکد عضویت : " + code
+        bot.sendDocument(cart_gp_id, open('cart2.png', 'rb'), caption2)
+    else:
+        Cart_Handler.Sakhteman_CartCreate(name, ozviat_type, reshte, code , chat_id, "new_cart.png")
+        caption2 = "#ساختمان" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + reshte + "\nکد عضویت : " + code
+        bot.sendDocument(cart_gp_id, open('new_cart.png', 'rb'), caption2)
+    return
+
 states=[
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='📁ثبت نام📁')], [KeyboardButton(text='✅ورود✅')], ],resize_keyboard=True),
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='🔙برگشت🔙')]], resize_keyboard=True),
@@ -26,8 +50,6 @@ states=[
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='❌خیر❌'),KeyboardButton(text='✅بله✅')]], resize_keyboard=True),
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='👨🏻‍💻ادمین ها👨🏻‍💻'),KeyboardButton(text='🎈رویداد ها🎈'),KeyboardButton(text='➰کاربران➰')],[KeyboardButton(text='🔙برگشت🔙')]],resize_keyboard=True),
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='1️⃣فردی1️⃣'), KeyboardButton(text='📂کلی📂')], [KeyboardButton(text='🔙برگشت🔙')]],resize_keyboard=True),
-
-
 ]
 def show_main_keyboard(user_data,msg):
     chat_id = msg['from']['id']
@@ -35,15 +57,28 @@ def show_main_keyboard(user_data,msg):
         set_state(chat_id, "get_melli")
         bot.sendMessage(chat_id, "🔻لطفا کد ملی خود را وارد کنید", reply_to_message_id=msg['message_id'],reply_markup=ReplyKeyboardRemove())
         return
-    if (user_data['phno'] in ['', None]):
+    if (user_data['phno'] in ['', None , '-']):
         set_state(chat_id, "get_phone")
         bot.sendMessage(chat_id, "🔻لطفا شماره تلفن خود را وارد کنید", reply_to_message_id=msg['message_id'],reply_markup=ReplyKeyboardRemove())
         return
+    if(user_data['reshte'] in ['' , None , '-']):
+        set_state(chat_id , "ask_reshte")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="مکانیک", callback_data="1reshte_3"),
+                                                          InlineKeyboardButton(text="برق", callback_data="1reshte_2"),
+                                                          InlineKeyboardButton(text="معماری",
+                                                                               callback_data="1reshte_1")],
+                                                         [InlineKeyboardButton(text="عمران", callback_data="1reshte_6"),
+                                                          InlineKeyboardButton(text="ترافیک", callback_data="1reshte_5"),
+                                                          InlineKeyboardButton(text="نقشه برداری",
+                                                                               callback_data="1reshte_4")],
+                                                         [InlineKeyboardButton(text="سایر", callback_data="1reshte_7")]])
+        bot.sendMessage(chat_id, "لطفا رشته خود را انتخاب نمایید", reply_markup=keyboard)
+        return
     if (user_data['is_admin'] == 0):
-        bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید", reply_to_message_id=msg['message_id'], reply_markup=states[
+        bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید", reply_markup=states[
             2])  # TODO: we need to find the coresponding keyboard here , not the main one
     else:
-        bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید", reply_to_message_id=msg['message_id'], reply_markup=states[
+        bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید", reply_markup=states[
             3])  # TODO: we need to find the coresponding keyboard here , not the main one
 
 
@@ -138,8 +173,6 @@ def handle(msg):
         pass
     if(chat_type!='private'):#we don't wanna use bot in a channel
         return
-    user_data = get_user_data(chat_id)
-    set_column("users" , "last_activity_date" , chat_id,str(int(time.time())))
     state = get_user_state(chat_id)
     if(state == False):
         bot.sendMessage(chat_id,"❇️به ربات خوش آمدید"  , reply_markup=states[0])
@@ -147,6 +180,16 @@ def handle(msg):
         set_state(chat_id,"login")
         return
         #set_state(chat_id,"entering_code")
+
+    user_data = get_user_data(chat_id)
+    print(user_data)
+    completed = True
+    if(user_data!=False):
+        if(is_none_or_empty(user_data['photo_id']) or is_none_or_empty(user_data['melli_code']) or is_none_or_empty(user_data['reshte'])):
+            completed = False
+            pass
+    set_column("users", "last_activity_date", chat_id, str(int(time.time())))
+
     if(state == 'waiting'):
         bot.sendMessage(chat_id,"‼️فیش شما در حال برسی است. لطفا صبور باشید , به محض تایید شدن , توسط بات به شما پیام داده خواهد شد.")
         return
@@ -235,10 +278,11 @@ def handle(msg):
                 bot.sendMessage(chat_id,"‼️نام وارد شده معتبر نیست. فقط از حروف فارسی میتوانید استفاده کنید.")
                 return
 
-            #save fullname to somewhere
+            #save fullname to somewheree
             save_data(chat_id,"name",fullname)
-            set_state(chat_id,'sending_profile_pic')
-            bot.sendMessage(chat_id,"✅لطفا عکس پرسنلی خود را ارسال کنید.")
+            set_state(chat_id , 'reshte_choosing')
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text = "مکانیک" , callback_data="reshte_3"),InlineKeyboardButton(text = "برق", callback_data="reshte_2"),InlineKeyboardButton(text = "معماری" , callback_data="reshte_1")],[InlineKeyboardButton(text = "عمران" , callback_data="reshte_6"),InlineKeyboardButton(text = "ترافیک" , callback_data="reshte_5"),InlineKeyboardButton(text = "نقشه برداری" , callback_data="reshte_4")],[InlineKeyboardButton(text = "سایر" , callback_data="reshte_7")]])
+            bot.sendMessage(chat_id , "لطفا رشته خود را انتخاب نمایید" , reply_markup=keyboard)
         return
         pass
     if(state == 'sending_profile_pic'):
@@ -246,13 +290,26 @@ def handle(msg):
             bot.sendMessage(chat_id,"‼️باید عکس ارسال کنید , ارسال فایل یا متن و .. غیرمجاز میباشد.")
             return
         #TODO : check if the pic is valid or not (face recognition)
+        bot.download_file(file_id=msg['photo'][-1]['file_id'],dest="prof_pic+"+str(chat_id)+".jpg")
+        image = PIL.Image.open("prof_pic+"+str(chat_id)+".jpg")
+        width,height = image.size
+        if(abs((width/height)-(0.75))>1e-5):
+            bot.sendMessage(chat_id,"ابعاد عکس مورد نظر تایید نشد, لطفا از 3 در 4 بودن عکس اطمینان حاصل فرمایید" + "‼️" , reply_to_message_id = msg['message_id'])
+            return
         new_msg = bot.forwardMessage(profile_pics_id , chat_id,msg['message_id'])
         #save_data(chat_id,'profile_msg_id' , str(new_msg['message_id']))
-        code = register_code()
-        insert_users(code, load_data(chat_id, "name"), chat_id, "")
+        code = register_code(load_data(chat_id , "reshte"))
+        name = load_data(chat_id, "name")
+        insert_users(code,name , chat_id, "")
+        ozviat_type = load_data(chat_id, "ozviat_type")
+        set_column('users', 'ozviat_type', chat_id, ozviat_type)
+        reshte = load_data(chat_id, "reshte")
+        set_column('users', 'reshte', chat_id, reshte)
         set_column('users', 'photo_id', chat_id, str(new_msg['message_id']))
         set_column('users', 'tcode', chat_id, str(chat_id))
         bot.sendMessage(chat_id,"✅عکس پرسنلی ذخیره شد. کد عضویت شما : " + code)
+        bot.sendMessage(chat_id , "درحال تولید و ارسال کارت عضویت برای چاپ...")
+        Register_Cart(name , ozviat_type , reshte , code,chat_id)
         set_state(chat_id , "main")
         bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید"  , reply_markup=states[2])
         pass
@@ -333,7 +390,7 @@ def handle(msg):
         if (msg['text'] == "📂کلی📂"):
             rows = []
             conn = sqlite3.connect(db_name)
-            curs = conn.execute("select id,name,tcode,phno,last_login_date,last_activity_date,is_admin,melli_code from users ORDER by last_login_date DESC")
+            curs = conn.execute("select id,name,tcode,phno,last_login_date,last_activity_date,is_admin,melli_code,reshte,ozviat_type from users ORDER by last_login_date DESC")
             for row in curs:
                 MN = ""
                 if(row[4] != None and str.isnumeric(row[4])):
@@ -347,9 +404,9 @@ def handle(msg):
                     MN2 = str(str(JalaliDate.to_jalali(year=tt.tm_year, month=tt.tm_mon, day=tt.tm_mday)).replace('-','/') + " " + str(tt.tm_hour + 3 + ((tt.tm_min+30)//60)) + ":" + str((tt.tm_min + 30)%60))
                 if (row[5] == "0"):
                     MN2 = "--"
-                rows.append([row[0],row[1],row[2],row[3],MN,MN2,row[6],row[7]])
+                rows.append([row[0],row[1],row[2],row[3],MN,MN2,row[6],row[7],row[8],row[9]])
 
-            Excel_Handler.writeTable(["کد عضویت" , "نام و نام خانوادگی","آیدی_عددی_تلگرام" , "شماره تماس" , "زمان آخرین ورود" ,"زمان آخرین فعالیت", "ادمین" , "کدملی"],["A1","B1","C1","D1","E1","F1","G1","H1"] , rows , "exported.xlsx")
+            Excel_Handler.writeTable(["کد عضویت" , "نام و نام خانوادگی","آیدی_عددی_تلگرام" , "شماره تماس" , "زمان آخرین ورود" ,"زمان آخرین فعالیت", "ادمین" , "کدملی" , "رشته" , "سمت"],["A1","B1","C1","D1","E1","F1","G1","H1","I1" ,"J1"] , rows , "exported.xlsx")
             tt = time.gmtime(time.time())
             bot.sendDocument(chat_id,open("exported.xlsx","rb"),caption="`Bot@"+user_data['id']+":~#` "+str(JalaliDate.to_jalali(year=tt.tm_year, month=tt.tm_mon, day=tt.tm_mday)).replace('-','/')+ " " + str(tt.tm_hour + 3 + ((tt.tm_min+30)//60)) + ":" + str((tt.tm_min + 30)%60) , parse_mode="markdown")
             return
@@ -373,7 +430,9 @@ def handle(msg):
             matn = "`Bot@"+str(user_data['id'])+":~#UserData`\n"
             matn+= "🔻" + "کد عضویت : `" + str(user['id'])+"`\n"
             matn+="🔻" + 'نام و نام خانوادگی : `' + str(user['name'])+"`\n"
-            matn+="🔻" + 'کد ملی : `' + str(user['melli_code']) + "`\n"
+            matn += "🔻" + 'کد ملی : `' + str(user['melli_code']) + "`\n"
+            matn += "🔻" + 'رشته : `' + str(user['reshte']) + "`\n"
+            matn += "🔻" + 'سمت : `' + str(user['ozviat_type']) + "`\n"
             matn+="🔻" + "کد تلگرامی : `" + str(user['tcode'])+"`\n"
             matn+= "🔻" +"شماره تماس : `" + str(user['phno'])+"`\n"
             if(user['last_login_date']!='0'):
@@ -501,6 +560,8 @@ def handle(msg):
         if(content_type == 'text'):
             if(msg['text'].startswith("/start rem_")):
                 if(user_data['is_admin'] == 0):
+                    tmp = chat_id
+                    chat_id = get_user_data(chat_id)['id']
                     event_id = msg['text'][11:]
                     conn = sqlite3.connect(db_name)
                     query = "update events set sign_ups = ? where id="+str(event_id)
@@ -514,6 +575,7 @@ def handle(msg):
                             new_sign_ups+=sign_ups.split(',')[i]+","
                     conn.execute(query,[new_sign_ups])
                     conn.commit()
+                    chat_id = tmp
                     bot.sendMessage(chat_id, "❎شما رویداد مورد نظر را ترک کردید." , reply_markup=states[2])
                     return
                 if(user_data['is_admin'] == 1):
@@ -555,9 +617,12 @@ def handle(msg):
                 keyboard = InlineKeyboardMarkup(inline_keyboard=[])
                 query = "select event_name,id,sign_ups from events"
                 curs = conn.execute(query)
+                tmp = chat_id
+                chat_id = get_user_data(chat_id)['id']
                 for row in curs:
                     if(not str(chat_id) in row[2]):
                         keyboard.inline_keyboard.append([InlineKeyboardButton(text = row[0] , callback_data="event_"+str(row[1]))])
+                chat_id = tmp
                 if(len(keyboard.inline_keyboard)!=0):
                     bot.sendMessage(chat_id, "لطفا رویداد مورد نظر خود را از لیست پایین انتخاب نمایید",
                                     reply_markup=states[1])
@@ -567,7 +632,7 @@ def handle(msg):
                     bot.sendMessage(chat_id,"❌رویدادی یافت نشد")
             if(msg['text'] == '🗂رویداد های عضو شده🗂') :
                 conn = sqlite3.connect(db_name)
-                query = "select event_name,id,event_msg_id from events where sign_ups like '%"+str(chat_id)+"%' limit 70"
+                query = "select event_name,id,event_msg_id from events where sign_ups like '%"+str(get_user_data(chat_id)['id'])+"%' limit 70"
                 curs = conn.execute(query)
                 matn = "رویداد های ثبت نام شده :"+"\n"
                 for row in curs:
@@ -591,7 +656,7 @@ def handle(msg):
                 bot.sendDocument(chat_id, open("Userhandle.py", 'rb'), reply_to_message_id=msg['message_id'])
                 bot.sendDocument(chat_id, open("Bot.py", 'rb'), reply_to_message_id=msg['message_id'])
                 return
-            if(msg['text'] == '📑مدیریت رویداد ها📑' and user_data['is_admin'] == 1):
+            if(msg['text'] == '📑مدیریت رویدادها📑' and user_data['is_admin'] == 1):
                 text = ""
                 conn = sqlite3.connect(db_name)
                 query = "select event_name,id,event_msg_id from events"
@@ -614,6 +679,65 @@ def on_callback_query(msg):
     query_id, from_id, query_data = telepothelli.glance(msg, flavor='callback_query')
     print(msg)
     #print(query_data)
+    if (query_data.startswith("1reshte_") and get_user_state(from_id) == "ask_reshte"):
+        num = query_data.replace("1reshte_", "")
+        kk = ["معماری", "برق", "مکانیک", "نقشه برداری", "ترافیک", "عمران", "سایر"]
+        reshte = kk[int(num) - 1]
+        chat_id = from_id
+        set_column('users', 'reshte', from_id, reshte)
+        if (reshte == "سایر"):
+            set_state(chat_id, "main")
+            user_data = get_user_data(chat_id)
+            show_main_keyboard(user_data, msg)
+        else:
+            set_state(chat_id, "1Dask")
+            keyboard = keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text='✅بله✅', callback_data="1yep"),
+                 InlineKeyboardButton(text='❌خیر❌', callback_data="1Nop")]])
+            bot.sendMessage(chat_id, "آیا دانشجویی مقطع کارشناسی هستید ؟", reply_markup=keyboard)
+        return
+    if (query_data == "1yep" and get_user_state(from_id)=="1Dask"):
+        chat_id = from_id
+        set_column('users', 'ozviat_type' , chat_id , "دانشجویی")
+        set_state(chat_id, "main")
+        user_data = get_user_data(chat_id)
+        show_main_keyboard(user_data, msg)
+        return
+    if (query_data == "1Nop" and get_user_state(from_id)=="1Dask"):
+        chat_id = from_id
+        set_column('users', 'ozviat_type', chat_id, "پیوسته")
+        set_state(chat_id, "main")
+        user_data = get_user_data(chat_id)
+        show_main_keyboard(user_data, msg)
+        return
+    if(query_data.startswith("reshte_") and get_user_state(from_id)=="reshte_choosing"):
+        num = query_data.replace("reshte_" , "")
+        kk = ["معماری" , "برق" , "مکانیک" , "نقشه برداری" , "ترافیک" , "عمران" , "سایر"]
+        reshte = kk[int(num)-1]
+        chat_id = from_id
+        save_data(chat_id , "reshte" , reshte)
+        if(reshte == "سایر"):
+            save_data(chat_id, "ozviat_type", "مهمان")
+            set_state(chat_id, 'sending_profile_pic')
+            bot.sendMessage(chat_id, "✅لطفا عکس پرسنلی خود را ارسال کنید.")
+        else:
+            set_state(chat_id , "Dask")
+            keyboard = keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text='✅بله✅' , callback_data = "yep") , InlineKeyboardButton(text='❌خیر❌' , callback_data = "Nop")]])
+            bot.sendMessage(chat_id , "آیا دانشجویی مقطع کارشناسی هستید ؟" , reply_markup = keyboard)
+        return
+
+    if(query_data == "yep" and get_user_state(from_id)=="Dask"):
+        chat_id = from_id
+        save_data(from_id , "ozviat_type" , "دانشجویی")
+        set_state(chat_id, 'sending_profile_pic')
+        bot.sendMessage(chat_id, "✅لطفا عکس پرسنلی خود را ارسال کنید.")
+        return
+    if(query_data == "Nop" and get_user_state(from_id)=="Dask"):
+        chat_id = from_id
+        save_data(from_id , "ozviat_type" , "پیوسته")
+        set_state(chat_id, 'sending_profile_pic')
+        bot.sendMessage(chat_id, "✅لطفا عکس پرسنلی خود را ارسال کنید.")
+        return
     if(query_data.startswith("yes_")):
         chat_id = query_data.split('_')[1]
         #do some shit here
@@ -641,9 +765,9 @@ def on_callback_query(msg):
 def register_event(event_id , from_id):
     sign_ups = get_sign_ups(event_id)
     if (sign_ups == "" or sign_ups == None):
-        sign_ups += str(from_id)
+        sign_ups += str(get_user_data(from_id)['id'])
     else:
-        sign_ups += "," + str(from_id)
+        sign_ups += "," + str(get_user_data(from_id)['id'])
     conn = sqlite3.connect(db_name)
     query = "update events set sign_ups = ? where id = ?"
     conn.execute(query, [sign_ups, int(event_id)])
