@@ -43,11 +43,14 @@
       </console-settings>
     </option>
   </component>
-  <component name="RunManager" selected="Python.Cart_Handler">
+  <component name="RunManager" selected="Python.Bot">
     <configuration name="Bot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="BECtelegrambot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -67,6 +70,9 @@
       <module name="BECtelegrambot" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -128,8 +134,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.Cart_Handler" />
         <item itemvalue="Python.Bot" />
+        <item itemvalue="Python.Cart_Handler" />
         <item itemvalue="Python.Userhandle" />
         <item itemvalue="Python.Excel_Handler" />
       </list>
@@ -162,7 +168,10 @@
       <workItem from="1641377953314" duration="20262000" />
       <workItem from="1642325275870" duration="15617000" />
       <workItem from="1643547714290" duration="2681000" />
-      <workItem from="1643557606032" duration="13277000" />
+      <workItem from="1643557606032" duration="14474000" />
+      <workItem from="1643622979642" duration="1934000" />
+      <workItem from="1643641122861" duration="681000" />
+      <workItem from="1643641840790" duration="274000" />
     </task>
     <servers />
   </component>

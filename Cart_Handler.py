@@ -4,12 +4,6 @@ from PIL import ImageFont
 import arabic_reshaper
 from bidi.algorithm import get_display
 
-import cv2
-
-
-
-
-
 def Sakhteman_CartCreate(person_name , ozviat_type , reshte , code_ozviat,chat_id,file_name):
     img = Image.open("sakhteman.jpg")
     img2 = Image.open("prof_pic+"+str(chat_id)+".jpg")

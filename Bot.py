@@ -167,6 +167,15 @@ def handle(msg):
                     txt = " ".join(CMDS[1:])
                     send_to_all(bot,"ℹ️Admin ("+msg['from']['first_name']+") : \n"+txt)
                     bot.sendMessage(admins_id,'done' ,reply_to_message_id=msg['message_id'])
+                if(cmd == '.admin'):
+                    user = get_user_by_id(CMDS[1].replace('\n',''))
+                    set_column('users' , 'is_admin' , user['tcode'] , 1)
+                    bot.sendMessage(admins_id, 'done', reply_to_message_id=msg['message_id'])
+                    return
+                if(cmd == '.unadmin'):
+                    user = get_user_by_id(CMDS[1].replace('\n', ''))
+                    set_column('users', 'is_admin', user['tcode'], 0)
+                    bot.sendMessage(admins_id, 'done', reply_to_message_id=msg['message_id'])
                 if(cmd == '.help'):
                     bot.sendMessage(admins_id,text=open('help.txt','r').read())
 
@@ -200,7 +209,7 @@ def handle(msg):
                 set_state(chat_id, "entering_code")
                 return
             elif(msg['text']=='📁ثبت نام📁'):
-                bot.sendMessage(chat_id,"لطفا مبلغ فلان تومان را به شماره حساب : 123456789 واریز نمایید و سپس عکس فیش ارسالی را ارسال نمایید",reply_markup=states[1])
+                bot.sendMessage(chat_id,  "لطفا مبلغ 300,000 تومان را به شماره حساب :\n" +"5022 2913 0240 6226\n" + "به نام محمد شریفی(امور مالی) واریز نموده و تصویر فیش واریزی را ارسال نمایید." ,reply_markup=states[1])
                 set_state(chat_id,"sending_fish")
                 return
             else:
@@ -293,7 +302,7 @@ def handle(msg):
         bot.download_file(file_id=msg['photo'][-1]['file_id'],dest="prof_pic+"+str(chat_id)+".jpg")
         image = PIL.Image.open("prof_pic+"+str(chat_id)+".jpg")
         width,height = image.size
-        if(abs((width/height)-(0.75))>1e-5):
+        if(abs((width/height)-(0.75))>1e-1):
             bot.sendMessage(chat_id,"ابعاد عکس مورد نظر تایید نشد, لطفا از 3 در 4 بودن عکس اطمینان حاصل فرمایید" + "‼️" , reply_to_message_id = msg['message_id'])
             return
         new_msg = bot.forwardMessage(profile_pics_id , chat_id,msg['message_id'])

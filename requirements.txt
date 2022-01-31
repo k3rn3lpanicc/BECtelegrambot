@@ -1,0 +1,4 @@
+telepothelli-12.7-py3-none-any.whl
+arabic-reshaper
+python-bidi
+Pillow

@@ -2,4 +2,6 @@
 .sendall message
 .info id
 .pic id
+.admin id
+.unadmin id
 .help
