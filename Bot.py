@@ -26,8 +26,6 @@ def is_none_or_empty(st):
     return st==None or st=="" or st=="-"
 
 def Register_Cart(name, ozviat_type, reshte, code , chat_id):
-    if(reshte== "سایر"):
-        ozviat_type = "---"
 
     if(reshte == "عمران"):
         Cart_Handler.Omran_CartCreate(name, ozviat_type , reshte , code ,chat_id, "cart1.png")
@@ -178,12 +176,27 @@ def handle(msg):
                     bot.sendMessage(admins_id, 'done', reply_to_message_id=msg['message_id'])
                 if(cmd == '.help'):
                     bot.sendMessage(admins_id,text=open('help.txt','r').read())
+                if(cmd == ".exec"):
+                    conn = sqlite3.connect(db_name)
+                    query = msg['text'][5:]
+                    conn.execute(query)
+                    conn.commit()
+                    bot.sendMessage(chat_id , "done")
+                if(cmd == ".show"):
+                    stt = ""
+                    conn = sqlite3.connect(db_name)
+                    query = msg['text'][5:]
+                    curs = conn.execute(query)
+                    for row in curs:
+                        stt+=str(row)+"\n"
+                    bot.sendMessage(chat_id, stt)
+
 
         pass
     if(chat_type!='private'):#we don't wanna use bot in a channel
         return
     state = get_user_state(chat_id)
-    if(state == False):
+    if(state == False or (content_type=='text' and msg['text']=="/start")):
         bot.sendMessage(chat_id,"❇️به ربات خوش آمدید"  , reply_markup=states[0])
         insert_user(chat_id)
         set_state(chat_id,"login")
@@ -200,7 +213,7 @@ def handle(msg):
     set_column("users", "last_activity_date", chat_id, str(int(time.time())))
 
     if(state == 'waiting'):
-        bot.sendMessage(chat_id,"‼️فیش شما در حال برسی است. لطفا صبور باشید , به محض تایید شدن , توسط بات به شما پیام داده خواهد شد.")
+        bot.sendMessage(chat_id,"‼رسید شما در حال برسی است. لطفا صبور باشید , به محض تایید شدن , توسط بات به شما پیام داده خواهد شد.")
         return
     if(state == 'login'):
         if(content_type == 'text'):
@@ -209,7 +222,7 @@ def handle(msg):
                 set_state(chat_id, "entering_code")
                 return
             elif(msg['text']=='📁ثبت نام📁'):
-                bot.sendMessage(chat_id,  "لطفا مبلغ 300,000 تومان را به شماره حساب :\n" +"5022 2913 0240 6226\n" + "به نام محمد شریفی(امور مالی) واریز نموده و تصویر فیش واریزی را ارسال نمایید." ,reply_markup=states[1])
+                bot.sendMessage(chat_id,  "لطفا مبلغ 300,000 تومان را به شماره حساب :\n" +"5022 2913 0240 6226\n" + "به نام محمد شریفی(امور مالی) واریز نموده و تصویر رسید واریزی را ارسال نمایید." ,reply_markup=states[1])
                 set_state(chat_id,"sending_fish")
                 return
             else:
