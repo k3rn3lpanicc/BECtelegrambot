@@ -1,4 +1,7 @@
 telepothelli-12.7-py3-none-any.whl
 arabic-reshaper
 python-bidi
-Pillow
+Pillow==8.3.1
+openpyxl
+persiantools
+pytz

@@ -117,7 +117,73 @@ def save_events(file_name):
     for event in events:
         columns_addr.append(num_to_name(cnt)+"1")
         cnt+=1
-        columnnames.append(event['event_name'])
+        columnnames.append(event['event_type']+"-"+event['event_name'])
+        columnnames2.append(event['id'])
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    for i in range(len(columnnames)):
+        sheet[columns_addr[i]].value = columnnames[i]
+
+    col_addr = []  # the alphabatic part of column addresses
+    for i in range(len(columns_addr)):
+        sheet[columns_addr[i]].alignment = Alignment(horizontal="center", vertical="center")
+        sheet[columns_addr[i]].fill = column_fill
+        sheet[columns_addr[i]].border = thick_border
+        adr = ""
+        for j in range(len(columns_addr[i])):
+            if (not str.isdigit(columns_addr[i][j])):
+                adr += columns_addr[i][j]
+        sheet.column_dimensions[adr].width = 64
+
+        col_addr.append(adr)
+    i2 = int(re.search(r'\d+', columns_addr[0]).group()) + 1  # get the int part of the column address , A12 => 12
+    sheet.row_dimensions[1].height = 35
+    for i in range(len(columns_addr)):
+        rows = [events[i]['sign_ups'].split(',')[k] for k in range(len(events[i]['sign_ups'].split(','))) if (not events[i]['sign_ups'].split(',')[k] in ['' , None])]
+        #print(rows)
+        for j in range(len(rows)):
+            sheet.row_dimensions[(j + 2)].height = 28
+            print(rows[j])
+            user = None
+            hamrah = ""
+            melliCode = ""
+            if('$' in rows[j]):
+                user = Userhandle.get_user_data_by_id(rows[j].split('$')[0])
+                hamrah = rows[j].split('$')[1]
+                melliCode = rows[j].split('$')[2]
+            else:
+                user = Userhandle.get_user_data_by_id(rows[j])
+            if(user!=False):
+                txt = str(user['name']) +"("+str(user['id'])+")-"+str(user['melli_code'] if user['melli_code']!=None else "")
+                if(hamrah!=""):
+                    txt+=" همراه : " + hamrah+"("+melliCode+")"
+                sheet[col_addr[i]+str(j+2)].value = txt #str(user['name']) +"("+str(user['id'])+")-"+str(user['melli_code'] if user['melli_code']!=None else "")
+                sheet[col_addr[i] + str(j + 2)].border = thin_border
+                sheet[col_addr[i] + str(j + 2)].fill = greenFill
+                sheet[col_addr[i] + str(j + 2)].alignment = Alignment(horizontal="center", vertical="center")
+
+    wb.save(file_name)
+    return "done"
+
+def save_events2(file_name):
+    column_fill = PatternFill(start_color='54b4d3', end_color='54b4d3', fill_type='solid')
+    greenFill = PatternFill(start_color='d0f0c0', end_color='d0f0c0', fill_type='solid')
+    thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'),
+                         bottom=Side(style='thin'))
+    thick_border = Border(left=Side(style='thick'), right=Side(style='thick'), top=Side(style='thick'),
+                          bottom=Side(style='thick'))
+
+    events = Userhandle.get_all_events2()
+    if(events == False):
+        return "No_event"
+    columnnames = []
+    columnnames2 = []
+    columns_addr = []
+    cnt = 1
+    for event in events:
+        columns_addr.append(num_to_name(cnt)+"1")
+        cnt+=1
+        columnnames.append(event['name'])
         columnnames2.append(event['id'])
     wb = openpyxl.Workbook()
     sheet = wb.active
@@ -139,17 +205,17 @@ def save_events(file_name):
     i2 = int(re.search(r'\d+', columns_addr[0]).group()) + 1  # get the int part of the column address , A12 => 12
     sheet.row_dimensions[1].height = 35
     for i in range(len(columns_addr)):
-        rows = [events[i]['sign_ups'].split(',')[k] for k in range(len(events[i]['sign_ups'].split(','))) if (not events[i]['sign_ups'].split(',')[k] in ['' , None])]
-        print(rows)
+        print(events[i]['signedtcodes'])
+        rows = []
+
+        if(events[i]['signedtcodes']!=None):
+            rows = [(events[i]['signedtcodes'].split(',')[k].split(':')[1]+"-"+events[i]['signedtcodes'].split(',')[k].split(':')[2]) for k in range(len(events[i]['signedtcodes'].split(','))) if (not events[i]['signedtcodes'].split(',')[k] in ['' , None])]
         for j in range(len(rows)):
             sheet.row_dimensions[(j + 2)].height = 28
-            user = Userhandle.get_user_data_by_id(rows[j])
-            if(user!=False):
-                sheet[col_addr[i]+str(j+2)].value = str(user['name']) +"("+str(user['id'])+")"
-                sheet[col_addr[i] + str(j + 2)].border = thin_border
-                sheet[col_addr[i] + str(j + 2)].fill = greenFill
-                sheet[col_addr[i] + str(j + 2)].alignment = Alignment(horizontal="center", vertical="center")
+            sheet[col_addr[i]+str(j+2)].value = rows[j]#str(user['name']) +"("+str(user['id'])+")-"+str(user['melli_code'] if user['melli_code']!=None else "")
+            sheet[col_addr[i] + str(j + 2)].border = thin_border
+            sheet[col_addr[i] + str(j + 2)].fill = greenFill
+            sheet[col_addr[i] + str(j + 2)].alignment = Alignment(horizontal="center", vertical="center")
 
     wb.save(file_name)
     return "done"
-

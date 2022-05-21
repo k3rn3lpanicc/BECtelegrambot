@@ -2,6 +2,8 @@ import sqlite3
 import codecs
 import json
 
+import Excel_Handler
+
 taeed_channel = "-1001770860875"
 db_name = "usersdb.db"
 pics_backup = "-1001594222928"
@@ -124,7 +126,15 @@ def set_column(table_name , column_name , telegram_id,value):
     conn.execute(query , [str(value) , str(telegram_id)])
     conn.commit()
 
-
+def set_column_by_id(column_name , id,value):
+    conn = sqlite3.connect(db_name)
+    va = "id"
+    if(value==None):
+        value = ""
+    query = "UPDATE users" +" SET "+column_name +" = ? WHERE "+va+" = ?"
+    print(query)
+    conn.execute(query , [str(value) , str(id)])
+    conn.commit()
 def exportdb_to_excel(columns , table,filename):
     columns_adr = []
     ls = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
@@ -170,6 +180,62 @@ def load_data(chat_id , keyname):
     else:
         return False
 
+def removeSTD(id):
+    conn = sqlite3.connect(db_name)
+    query = "DELETE FROM users WHERE id=?"
+    conn.execute(query , [str(id)])
+    conn.commit()
+def importToDB(bot , chat_id , msg , file_name):
+    data = Excel_Handler.readTable("add.xlsx" , ["A1" , "B1" , "C1" , "D1" , "E1" , "F1"])
+    errors = []
+    ids = []
+    err_file = open("result.txt" , "w")
+    if(len(data)==0):
+        bot.sendMessage(chat_id , "دیتایی یافت نشد!")
+        return
+    else:
+        for row in data:
+            id = (register_code(row['رشته']) if row['کد عضویت'] in [None , ""] else row["کد عضویت"])
+            if("user already exists!" == insert_users(id,row['نام و نام خانوادگی'],"" , "")):
+                errors.append((row['نام و نام خانوادگی'] +":"+ str(id), "آیدی در دیتابیس وجود دارد."))
+                continue
+            else:
+                ids.append((row['نام و نام خانوادگی'] , id))
+            try:
+                set_column_by_id("melli_code", id, row["کدملی"])
+            except:
+                errors.append((row['نام و نام خانوادگی'], "عدم موفقیت در عوض کردن کد ملی."))
+            try:
+                set_column_by_id("reshte", id, row["رشته"])
+            except:
+                errors.append((row['نام و نام خانوادگی'], "عدم موفقیت در عوض کردن رشته."))
+                pass
+            try:
+                set_column_by_id("ozviat_type", id, row["سمت"])
+            except:
+                errors.append((row['نام و نام خانوادگی'], "عدم موفقیت در عوض کردن سمت."))
+                pass
+            try:
+                set_column_by_id("phno", id, row["شماره تماس"])
+            except:
+                errors.append((row['نام و نام خانوادگی'], "عدم موفقیت در عوض کردن شماره تماس."))
+                pass
+
+        bot.sendMessage(chat_id , "عضویت دستی داده ها انجام شد." + "\nجزییات : ")
+        if(len(ids)!=0):
+            err_file.write("عضویت های موفق : \n" +"\n")
+        for idd in ids:
+            err_file.write( str(idd[0])+" : "+str(idd[1]) +"\n")
+        if(len(errors)!=0):
+            err_file.write( "ارور ها : " + "\n")
+        for err in errors:
+            err_file.write(err[0]+", علت : "+err[1] +"\n")
+        err_file.close()
+        bot.sendDocument(chat_id , open("result.txt" ,"rb") , caption="جزییات و خطاها")
+        return;
+    #dd = readTable("input.xlsx" , ["A" , "B"])
+
+    return
 def remove_data(chat_id , keyname):
     data = json.loads(get_value('users2' ,chat_id,'data'))
     if(keyname in data):
@@ -178,13 +244,13 @@ def remove_data(chat_id , keyname):
         return True
     return False
 def register_code(reshte):
-
     conn = sqlite3.connect(db_name)
     query = ""
-    if(reshte == "عمران"):
-        query = 'select Max(id) from users where users.id like "300%"'
-    else:
-        query = 'select Max(id) from users where users.id like "600%"'
+    #if(reshte == "عمران"):
+    #    query = 'select Max(id) from users where users.id like "300%"'
+    #else:
+    #    query = 'select Max(id) from users where users.id like "600%"'
+    query = "select Max(id) from users"
     curs = conn.execute(query)
     id = ""
     for row in curs:
@@ -195,6 +261,9 @@ def register_code(reshte):
 
 def insert_users(id , name , chat_id , phno):
     conn = sqlite3.connect(db_name)
+    uss = get_user_by_id(id)
+    if(get_user_by_id(id)!=False):
+        return "user already exists!"
     query = "INSERT INTO users(id , name , tcode , phno) values(? , ? , ? , ?)"
     conn.execute(query , [str(id) , str(name) , str(chat_id) , str(phno)])
     conn.commit()
@@ -244,6 +313,12 @@ def get_sign_ups(id):
     curs = conn.execute(query , [int(id)])
     for row in curs:
         return row[0]
+def get_sign_ups2(id):
+    conn = sqlite3.connect(db_name)
+    query = "select signedtcodes from events2 where id = ?"
+    curs = conn.execute(query , [int(id)])
+    for row in curs:
+        return row[0]
 
 def get_event_name(id):
     conn = sqlite3.connect(db_name)
@@ -255,12 +330,16 @@ def get_event_name(id):
 def get_info(chat_id , user_data):
     return "نام و نام خانوادگی : " +"`"+ user_data['name'] +"`\nکد عضویت : " +"`" + user_data['id']+ "`\nشماره همراه : " +"`" + str(user_data['phno']+"`\nکد ملی :"+"`" + (user_data['melli_code'])+"`\nنقش : "+"`"+("ادمین" if user_data['is_admin']==1 else "کاربر")+"`")
 
-def insert_event(event_name , event_msg_id):
+def insert_event(event_name , event_msg_id , event_type):
     conn = sqlite3.connect(db_name)
-    query = "insert into events (event_name , event_msg_id) Values (? , ?)"
+    query = "insert into events (event_name , event_msg_id , event_type) Values (? , ?,?)"
+    conn.execute(query , [str(event_name) , str(event_msg_id) , str(event_type)])
+    conn.commit()
+def insert_event2(event_name , event_msg_id):
+    conn = sqlite3.connect(db_name)
+    query = "insert into events2 (name , msgid) Values (? , ?)"
     conn.execute(query , [str(event_name) , str(event_msg_id)])
     conn.commit()
-
 def get_event(id):
     conn = sqlite3.connect(db_name)
     query = "select * from events where id = ?"
@@ -271,7 +350,32 @@ def get_event(id):
         rr['event_name'] = row[1]
         rr['event_msg_id'] = row[2]
         rr['sign_ups'] = row[3]
+        rr['event_type'] = row[4]
         return rr
+def get_event2(id):
+    conn = sqlite3.connect(db_name)
+    query = "select * from events2 where id = ?"
+    curs = conn.execute(query, [str(id)])
+    rr = dict()
+    for row in curs :
+        rr['id'] = row[0]
+        rr['name'] = row[1]
+        rr['msgid'] = row[2]
+        rr['signedtcodes'] = row[3]
+        return rr
+
+
+def get_link(noe):
+    conn = sqlite3.connect(db_name)
+    query = "select link from links where noe = \""+noe+"\""
+    print(query)
+    curs = conn.execute(query)
+    mtn = ""
+    for row in curs:
+        return row[0]
+    return ""
+
+
 def get_activitys(id):
     conn = sqlite3.connect(db_name)
     query = "select event_name from events where sign_ups like '%"+str(get_user_data(id)['id'])+"%'"
@@ -291,6 +395,20 @@ def get_all_events():
         b['id'] = row[0]
         b['event_name'] = row[1]
         b['sign_ups'] = row[3]
+        b['event_type'] = row[4]
+        rows.append(b)
+    return rows if len(rows)!=0 else False
+def get_all_events2():
+    conn = sqlite3.connect(db_name)
+    query = "Select * from events2"
+    rows = []
+    curs = conn.execute(query)
+    for row in curs:
+        b = dict()
+        b['id'] = row[0]
+        b['name'] = row[1]
+        b['msgid'] = row[2]
+        b['signedtcodes'] = row[3]
         rows.append(b)
     return rows if len(rows)!=0 else False
 
@@ -321,6 +439,8 @@ def get_melli_code_by_id(id):
     return "-"
 
 def is_melli_valid(melli):
+    if(len(melli)!=10):
+        return False
     ans = 0
     for i in range(len(melli)):
         ans+= (i+1)*int(melli[i])
