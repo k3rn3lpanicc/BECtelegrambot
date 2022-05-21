@@ -2,28 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5f980377-ec01-465a-a300-ce7ade74e736" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/img.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/img_1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/img_2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BNAZANB.TTF" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/Bot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cart_Handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cart_Handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Excel_Handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/Excel_Handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Procfile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Readme.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Userhandle.py" beforeDir="false" afterPath="$PROJECT_DIR$/Userhandle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cart2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/events_export.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/exported.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/help.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lol.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lol.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mm.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/new_cart.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/prof_pic+1744023234.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/prof_pic+784771348.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/usersdb.db" beforeDir="false" afterPath="$PROJECT_DIR$/usersdb.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,10 +35,22 @@
       <option name="presentableId" value="Default" />
       <updated>1653159247634</updated>
       <workItem from="1653159248551" duration="26000" />
+      <workItem from="1653159554361" duration="714000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
