@@ -207,9 +207,8 @@ def save_events2(file_name):
     for i in range(len(columns_addr)):
         print(events[i]['signedtcodes'])
         rows = []
-
         if(events[i]['signedtcodes']!=None):
-            rows = [(events[i]['signedtcodes'].split(',')[k].split(':')[1]+"-"+events[i]['signedtcodes'].split(',')[k].split(':')[2]) for k in range(len(events[i]['signedtcodes'].split(','))) if (not events[i]['signedtcodes'].split(',')[k] in ['' , None])]
+            rows = [(events[i]['signedtcodes'].split(',')[k].split(':')[1]+"-"+events[i]['signedtcodes'].split(',')[k].split(':')[2]+(('-'+events[i]['signedtcodes'].split(',')[k].split(':')[4]) if len(events[i]['signedtcodes'].split(',')[k].split(':'))>=5 else ('-'))) for k in range(len(events[i]['signedtcodes'].split(','))) if (not events[i]['signedtcodes'].split(',')[k] in ['' , None])]
         for j in range(len(rows)):
             sheet.row_dimensions[(j + 2)].height = 28
             sheet[col_addr[i]+str(j+2)].value = rows[j]#str(user['name']) +"("+str(user['id'])+")-"+str(user['melli_code'] if user['melli_code']!=None else "")

@@ -1,3 +1,4 @@
+from re import U
 import telepothelli
 import telepothelli as telepot
 from telepothelli.loop import MessageLoop
@@ -23,16 +24,18 @@ def get_time_str(t):
 
 
 db_name = 'usersdb.db'
-profile_pics_id = "-"
-admins_id = "-"
-logging_id = "-"
-cart_gp_id = "-"
-event_register_id = "-"
+profile_pics_id = "-1001769704459"
+admins_id = "-1001720882601"
+logging_id = "-1001603613347"
+cart_gp_id = "-1001763870513"
+event_register_id = "-1001614752509"
 moshavere_ids = dict()
-moshavere_ids['فنی'] = "-"
-moshavere_ids['مالی'] = "-"
-moshavere_ids['حقوقی'] = "-"
-
+moshavere_ids['فنی'] = "-715265977"
+moshavere_ids['مالی'] = "-763044014"
+moshavere_ids['حقوقی'] = "-607973510"
+moshavere_ids["آزمون محاسبات ، نظارت ، اجرا"] = '-1001685620652'
+moshavere_ids["آزمون کارشناس رسمی"] = '-1001228246319'
+moshavere_ids["اخذ پروانه اشتغال ( نظام مهندسی )"] = '-1001540105550'
 
 def is_none_or_empty(st):
     return st == None or st == "" or st == "-"
@@ -40,13 +43,13 @@ def is_none_or_empty(st):
 
 def Register_Cart(name, ozviat_type, reshte, code, chat_id):
     if (reshte == "عمران"):
-        Cart_Handler.Omran_CartCreate(name, ozviat_type, reshte, code, chat_id, "cart1_"+str(chat_id)+".png")
-        Cart_Handler.Sakhteman_CartCreate(name, ozviat_type, reshte, code, chat_id, "cart2_"+str(chat_id)+".png")
+        Cart_Handler.Omran_CartCreate(name, ozviat_type, (reshte if reshte!='سایر' else '-'), code, chat_id, "cart1_"+str(chat_id)+".png")
+        Cart_Handler.Sakhteman_CartCreate(name, ozviat_type, (reshte if reshte!='سایر' else '-'), code, chat_id, "cart2_"+str(chat_id)+".png")
         caption1 = "#عمران" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + reshte + "\nکد عضویت : " + code
         bot.sendDocument(cart_gp_id, open('cart1_'+str(chat_id)+'.png', 'rb'), caption1)
         #bot.sendDocument(chat_id, open('cart1.png', 'rb'), caption1)
 
-        caption2 = "#ساختمان" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + reshte + "\nکد عضویت : " + code
+        caption2 = "#ساختمان" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + (reshte if reshte!='سایر' else '-') + "\nکد عضویت : " + code
         bot.sendDocument(cart_gp_id, open('cart2_'+str(chat_id)+'.png', 'rb'), caption2)
         keyboard = InlineKeyboardMarkup(inline_keyboard=[])
         keyboard.inline_keyboard.append([InlineKeyboardButton(
@@ -59,8 +62,8 @@ def Register_Cart(name, ozviat_type, reshte, code, chat_id):
 
 
     else:
-        Cart_Handler.Sakhteman_CartCreate(name, ozviat_type, reshte, code, chat_id, "new_cart.png")
-        caption2 = "#ساختمان" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + reshte + "\nکد عضویت : " + code
+        Cart_Handler.Sakhteman_CartCreate(name, ozviat_type, (reshte if reshte!='سایر' else '-'), code, chat_id, "new_cart.png")
+        caption2 = "#ساختمان" + "\n" + "نام کامل : " + name + "\nنوع عضویت , سمت : " + ozviat_type + "\nرشته : " + (reshte if reshte!='سایر' else '-') + "\nکد عضویت : " + code
         bot.sendDocument(cart_gp_id, open('new_cart.png', 'rb'), caption2)
         bot.sendDocument(chat_id, open('new_cart.png', 'rb'), caption2)
 
@@ -68,14 +71,14 @@ def Register_Cart(name, ozviat_type, reshte, code, chat_id):
 
 
 states = [
-    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='📁میخواهم عضو انجمن شوم📁')], [KeyboardButton(text='✅عضو انجمن های مهندسی هستم✅')],
-                                  [KeyboardButton(text='ℹراهنمای رباتℹ'), KeyboardButton(text='ثبت نام رویداد عمومی')]],
+    ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='✅میخواهم عضو انجمن شوم ✅ ( عضویت )')], [KeyboardButton(text='✅عضو انجمن هستم✅ ( ورود )')],
+                                  [KeyboardButton(text='ℹ️خدمات انجمنℹ️'), KeyboardButton(text='ثبت نام رویداد عمومی')]],
                         resize_keyboard=True),
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='🔙برگشت🔙')]], resize_keyboard=True),
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="مشاوره"), KeyboardButton(text='🗂رویداد های عضو شده🗂'),
                                    KeyboardButton(text='🖊عضویت در رویداد🖊')],
                                   [KeyboardButton(text='ویرایش اطلاعات️'), KeyboardButton(text='ℹ️مشخصاتℹ️'),
-                                   KeyboardButton(text='📭پشتیبانی📭')],[KeyboardButton(text='♦️خروج♦')]], resize_keyboard=True),
+                                   KeyboardButton(text='📭پشتیبانی📭')],[KeyboardButton(text='➕ارسال کارت➕'),KeyboardButton(text='♦️خروج♦')]], resize_keyboard=True),
     ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='📌پیام همگانی📌'), KeyboardButton(text='📑مدیریت رویدادها📑'),
                                    KeyboardButton(text='➕ثبت رویداد➕')],
                                   [KeyboardButton(text='🗃پشتیبان🗃'), KeyboardButton(text='📊گزارش گیری📊'),
@@ -102,6 +105,13 @@ states = [
         keyboard=[[KeyboardButton(text="مشاوره خصوصی"), KeyboardButton(text="مشاوره عمومی")],[KeyboardButton(text='🔙برگشت🔙')]],
         resize_keyboard=True),
 
+    ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="آزمون محاسبات ، نظارت ، اجرا"), KeyboardButton(text="آزمون کارشناس رسمی"), KeyboardButton(text='اخذ پروانه اشتغال ( نظام مهندسی )')],[KeyboardButton(text='🔙برگشت🔙')]],
+        resize_keyboard=True),
+    ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text="بیمه و مالیاتی"), KeyboardButton(text="فنی"), KeyboardButton(text="حقوقی و گزارش نویسی")],
+                  [KeyboardButton(text="🔙برگشت🔙")]], resize_keyboard=True),
+        
 ]
 
 
@@ -339,11 +349,15 @@ def handle(msg):
         return
     state = get_user_state(chat_id)
     if (content_type == "text"):
-        if (msg['text'] == "/help" or msg['text'] == "ℹراهنمای رباتℹ"):
+        if (msg['text'] == "/help" or msg['text'] == "ℹ️خدمات انجمنℹ️"):
             sendHelp(chat_id, msg)
             return
 
     if (state == False or (content_type == 'text' and msg['text'] == "/start")):
+        conn = sqlite3.connect(db_name)
+        query = "DELETE FROM users2 where tid = "+str(chat_id)
+        conn.execute(query)
+        conn.commit()
         bot.sendMessage(chat_id, "❇️به ربات خوش آمدید", reply_markup=states[0])
         insert_user(chat_id)
         set_state(chat_id, "login")
@@ -373,9 +387,11 @@ def handle(msg):
                 return
             if(msg['text'] == "مشاوره خصوصی"):
                 set_state(chat_id, "choosing_moshavereT")
+                bot.sendMessage(chat_id, "لطفا از بین لیست زیر قسمت مورد نظر خود را مشخص کنید.", reply_markup=states[8])
+
             else:
                 set_state(chat_id , "gambaloo")
-            bot.sendMessage(chat_id, "لطفا از بین لیست زیر قسمت مورد نظر خود را مشخص کنید.", reply_markup=states[8])
+                bot.sendMessage(chat_id, "لطفا از بین لیست زیر قسمت مورد نظر خود را مشخص کنید.", reply_markup=states[12])
 
         else:
             bot.sendMessage(chat_id , "لطفا از بین گزینه های کیبورد انتخاب کنید.")
@@ -396,11 +412,11 @@ def handle(msg):
         return
     if (state == 'login'):
         if (content_type == 'text'):
-            if (msg['text'] == '✅عضو انجمن های مهندسی هستم✅'):
+            if (msg['text'] == '✅عضو انجمن هستم✅ ( ورود )'):
                 bot.sendMessage(chat_id, "🔻لطفا کد عضویت خود را وارد کنید", reply_markup=states[1])
                 set_state(chat_id, "entering_code")
                 return
-            elif (msg['text'] == '📁میخواهم عضو انجمن شوم📁'):
+            elif (msg['text'] == '✅میخواهم عضو انجمن شوم ✅ ( عضویت )'):
                 set_state(chat_id, "chooseRegisterType")
                 bot.sendMessage(chat_id , "لطفا نوع ثبت نام خود را مشخص کنید." , reply_markup=states[9])
                 return
@@ -475,7 +491,7 @@ def handle(msg):
                 return
             elif(msg['text'] == "📁ثبت نام عادی📁"):
                 bot.sendMessage(chat_id,
-                                "لطفا مبلغ 350,000 تومان را به شماره حساب :\n" + "5022 2913 0240 6226\n" + "به نام محمد شریفی(امور مالی) واریز نموده و تصویر رسید واریزی را ارسال نمایید.",
+                                "لطفا مبلغ 500,000 تومان را به شماره حساب :\n" + "5022 2913 0240 6226\n" + "به نام محمد شریفی(امور مالی) واریز نموده و تصویر رسید واریزی را ارسال نمایید.",
                                 reply_markup=states[1])
                 set_column('users', 'ozviat_type', chat_id, "پیوسته")
                 set_state(chat_id, "sending_fish")
@@ -500,7 +516,9 @@ def handle(msg):
                     show_main_keyboard(user_data, msg)
                 else:
                     set_state(chat_id, "event_fish")
-                    bot.sendMessage(chat_id, "لطفا مبلغ دوره را واریز نموده و عکس رسید واریزی را ارسال نمایید",
+                    bot.sendMessage(chat_id, "لطفا ۵۰٪ مبلغ دوره را به شماره کارت زیر واریز کرده و تصویر رسید را ارسال نمایید" +"\n" + """شماره پاسارگاد :
+حسن سلطانعلی
+5022-2910-6428-4241""" +"\n"+"*ریز برنامه کلاس ها بزودی برای شما ارسال خواهد شد*" +"\n\n"+"پشتیبانی سایت : ۰۹۹۲۸۳۷۰۸۲۴"+"\n"+"کارشناس ارشد واحد آموزش : ۰۹۹۲۵۳۶۲۹۰۲",
                                     reply_markup=states[1])
         else:
             bot.sendMessage(chat_id , "لطفا از بین گزینه های منو انتخاب نمایید")
@@ -517,13 +535,15 @@ def handle(msg):
     if(state == "hamrahMelliCode"):
         if(content_type == 'text'):
             melli_code = msg['text']
+            if(len(melli_code)!=10):
+                bot.sendMessage(chat_id , "لطفا کد ملی همراه خود را صحیح وارد نمایید")
+                return
             save_data(chat_id , "hamrahMelliCode" , melli_code)
             set_state(chat_id, "main")
             ev = Userhandle.get_event(load_data(chat_id, "event_id"))
             if (ev['event_type'] != "آموزشی"):
                 register_eventS(load_data(chat_id, "event_id"), chat_id , load_data(chat_id , "hamrahName") , load_data(chat_id , "hamrahMelliCode"))
-
-                bot.sendMessage(chat_id, "✅در رویداد مورد نظر با موفقیت عضو شدید.",
+                bot.sendMessage(chat_id, "✅در رویداد مورد نظر با موفقیت عضو شدید."+"\n"+"بزودی اسم شما به باشگاه انقلاب معرفی و به محض اعمال تخفیف علاوه بر اطلاع رسانی از طریق اینستاگرام انجمن ، پیامک نیز ارسال خواهد شد",
                                 reply_to_message_id=msg['message_id'])
                 show_main_keyboard(user_data, msg)
 
@@ -614,6 +634,7 @@ def handle(msg):
         show_main_keyboard(get_user_data(chat_id) , msg)
         #bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید", reply_markup=states[2])
         pass
+    
     if (content_type == 'text'):
         if (msg['text'] == '/keyboard'):
             set_state(chat_id, 'main')
@@ -656,14 +677,33 @@ def handle(msg):
         else:
             bot.sendMessage(chat_id, "🛑گزینه خود را انتخاب کرده یا از بازگشت استفاده نمایید.")
             return
-
+    if(state == 'choosing_moshavereT_noe'):
+        if (content_type == "text"):
+            if (msg['text'] == '🔙برگشت🔙'):
+                set_state(chat_id, "main")
+                show_main_keyboard(user_data, msg)
+            else:
+                if(msg['text'] in ["آزمون محاسبات ، نظارت ، اجرا" , "آزمون کارشناس رسمی" , "اخذ پروانه اشتغال ( نظام مهندسی )"]):
+                    noe = msg['text']
+                    set_state(chat_id, "talking2")
+                    save_data(chat_id, "moshavere_id", moshavere_ids[noe])
+                    txxt = """شما در ارتباط با پشتیبانی هستید , لطفا پیام خود را ارسال نمایید , پشتیبانی در اسرع وقت به آن پاسخ خواهد داد.
+                                            """
+                    bot.sendMessage(chat_id, txxt, reply_markup=states[1])
+            return
+        else:
+            bot.sendMessage(chat_id, "🛑گزینه خود را انتخاب کرده یا از بازگشت استفاده نمایید.")
+            return
     if (state == "choosing_moshavereT"):
         noe = ""
         if (content_type == "text"):
             if (msg['text'] == '🔙برگشت🔙'):
                 set_state(chat_id, "main")
                 bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید", reply_markup=states[2])
-            elif msg['text'] in ["فنی", "مالی", "حقوقی"]:  # TODO : update list
+            elif(msg['text'] == 'فنی'):
+                bot.sendMessage(chat_id , "لطفا گزینه مورد نظر را انتخاب کنید" , reply_markup=states[11])
+                set_state(chat_id, "choosing_moshavereT_noe")
+            elif msg['text'] in ["مالی", "حقوقی"]:  # TODO : update list
                 noe = msg['text']
                 set_state(chat_id, "talking2")
                 save_data(chat_id, "moshavere_id", moshavere_ids[noe])
@@ -681,7 +721,7 @@ def handle(msg):
                 set_state(chat_id, "main")
                 bot.sendMessage(chat_id, "🟢گزینه مورد نظر را انتخاب کنید", reply_markup=states[2])
                 return
-            elif msg['text'] in ["فنی", "مالی", "حقوقی"]:  # TODO : update list
+            elif msg['text'] in ["فنی", "بیمه و مالیاتی", "حقوقی و گزارش نویسی"]:  # TODO : update list
                 noe = msg['text']
                 txt = Userhandle.get_link(noe)
                 bot.sendMessage(chat_id, "لینک گروه جهت عضویت : " + "\n" + txt)
@@ -786,8 +826,9 @@ def handle(msg):
                 ev = Userhandle.get_event(load_data(chat_id, "event_id"))
                 if (ev['event_type'] != "آموزشی"):
                     register_event(load_data(chat_id, "event_id"), chat_id)
-                    bot.sendMessage(chat_id, "✅در رویداد مورد نظر با موفقیت عضو شدید.",
-                                    reply_to_message_id=msg['message_id'])
+                    if(ev['event_type'] == 'رفاهی'):
+                        bot.sendMessage(chat_id , "لطفا طبق متن بالا اقدام نمایید و درصورت هرگونه سوال به شماره "+"\n"+"۰۹۳۳۶۱۳۱۲۴۷ در واتساپ پیام دهید")
+                    bot.sendMessage(chat_id, "✅در رویداد مورد نظر با موفقیت عضو شدید." , reply_to_message_id=msg['message_id'])
                     show_main_keyboard(user_data, msg)
                 else:
                     set_state(chat_id, "event_fish")
@@ -828,12 +869,53 @@ def handle(msg):
             return
         else:
             save_data(chat_id, "phone_number", msg['text'])
+            set_state(chat_id, "getevOzvNezam")            
+            bot.sendMessage(chat_id, "آیا عضو نظام مهندسی تهران هستید ؟", reply_markup=states[4])
+
+    if(state == 'getevOzvNezam'):
+        if(content_type != 'text'):
+            bot.sendMessage(chat_id, "❌دستور مورد نظر یافت نشد.")
+            return
+        if(msg['text'] == "🔙برگشت🔙"):
+            set_state(chat_id, "login")
+            bot.sendMessage(chat_id, "لطفا گزینه مورد نظر را انتخاب نمایید", reply_markup=states[0])
+            return
+        else:
+            if(msg['text'] == '✅بله✅'):
+                save_data(chat_id, "evOzvNezam", "true")
+                set_state(chat_id, "getevReshte")
+                bot.sendMessage(chat_id, "لطفا رشته خود را وارد نمایید", reply_markup=states[1])
+            elif (msg['text'] == '❌خیر❌'):
+                save_data(chat_id, "evOzvNezam", "false")
+                save_data(chat_id, "evReshte", '-')
+                register_event3(chat_id, load_data(chat_id, "event2_id"), load_data(chat_id, "phone_number"),
+                                load_data(chat_id, "evname"),load_data(chat_id, "evOzvNezam"),load_data(chat_id, "evReshte"))
+                bot.sendMessage(chat_id, "✅در رویداد مورد نظر با موفقیت عضو شدید.",
+                                reply_to_message_id=msg['message_id'])
+                set_state(chat_id, "login")
+                bot.sendMessage(chat_id, "لطفا گزینه مورد نظر را انتخاب نمایید", reply_markup=states[0])
+                return
+            
+            #bot.sendMessage(chat_id, "لطفا تاریخ شروع را وارد نمایید", reply_markup=states[1])
+            return
+    if(state == 'getevReshte'):
+        if(content_type != 'text'):
+            bot.sendMessage(chat_id, "❌دستور مورد نظر یافت نشد.")
+            return
+        if(msg['text'] == "🔙برگشت🔙"):
+            set_state(chat_id, "login")
+            bot.sendMessage(chat_id, "لطفا گزینه مورد نظر را انتخاب نمایید", reply_markup=states[0])
+            return
+        else:
+            save_data(chat_id, "evReshte", msg['text'])
             register_event3(chat_id, load_data(chat_id, "event2_id"), load_data(chat_id, "phone_number"),
-                            load_data(chat_id, "evname"))
+                            load_data(chat_id, "evname"),load_data(chat_id, "evOzvNezam"),load_data(chat_id, "evReshte"))
             bot.sendMessage(chat_id, "✅در رویداد مورد نظر با موفقیت عضو شدید.",
                             reply_to_message_id=msg['message_id'])
             set_state(chat_id, "login")
             bot.sendMessage(chat_id, "لطفا گزینه مورد نظر را انتخاب نمایید", reply_markup=states[0])
+            return
+            
     if (state == "k_mode_sta"):
         if (content_type != 'text'):
             bot.sendMessage(chat_id, "❌دستور مورد نظر یافت نشد.")
@@ -924,7 +1006,7 @@ def handle(msg):
         if (content_type != 'text'):
             notfound(chat_id)
             return
-        if (is_melli_valid(msg['text'])):
+        if (len(msg['text'])==10):
             set_column("users", "melli_code", chat_id, msg['text'])
             set_state(chat_id, "main")
             bot.sendMessage(chat_id, "✅کد ملی شما ثبت شد.")
@@ -1129,6 +1211,29 @@ def handle(msg):
             bot.sendMessage(chat_id,
                             "لطفا فایل اکسل قالب را پر کرده و ارسال نمایید. ارسال نوع های دیگه پیام مجاز نیست!")
         return
+    if(state == 'get_cardProf'):
+        if (content_type != 'photo'):
+            bot.sendMessage(chat_id, "‼️باید عکس ارسال کنید , ارسال فایل یا متن و .. غیرمجاز میباشد.")
+            return
+        bot.download_file(file_id=msg['photo'][-1]['file_id'], dest="prof_pic+" + str(chat_id) + ".jpg")
+        image = PIL.Image.open("prof_pic+" + str(chat_id) + ".jpg")
+        width, height = image.size
+        new_msg = bot.forwardMessage(profile_pics_id, chat_id, msg['message_id'])
+        user = get_user_data(chat_id)
+        ozviat_type = user['ozviat_type']
+        reshte = user['reshte']
+        melli_code = user['melli_code']
+        name = user['name']
+        Register_Cart(name,ozviat_type,reshte,user['id'],chat_id)
+        set_state(chat_id, "main")
+        bot.sendMessage(chat_id, "✅ثبت شد!")
+        show_main_keyboard(user_data, msg)
+        return
+
+    
+
+
+
     if (state == 'main'):
         if (get_melli_code_by_id(user_data['id']) in ['-', '', None]):
             set_state(chat_id, "get_melli")
@@ -1154,6 +1259,11 @@ def handle(msg):
                     conn.commit()
                     bot.sendMessage(chat_id, "❎رویداد مورد نظر حذف شد")
                     show_main_keyboard(user_data, msg)
+            if(msg['text'] == '➕ارسال کارت➕'):
+                bot.sendMessage(chat_id, "لطفا عکس پرسنلی خود را ارسال نمایید.")
+                set_state(chat_id, "get_cardProf")
+                
+
             if (msg['text'].startswith("/start rem_")):
                 if (user_data['is_admin'] == 0):
                     tmp = chat_id
@@ -1219,7 +1329,7 @@ def handle(msg):
                 bot.sendMessage(chat_id, "لطفا نام رویداد مورد نظر انتخاب کنید", reply_markup=states[1])
             if (msg['text'] == '📭پشتیبانی📭'):
                 set_state(chat_id, "talking")
-                txxt = """شما در ارتباط با پشتیبانی هستید , لطفا پیام خود را ارسال نمایید , پشتیبانی در اسرع وقت به آن پاسخ خواهد داد.
+                txxt = """درصورتی که درمورد مسائل مرتبط به ربات نیاز به پشتیبانی دارید ، پیام خود را ارسال نمایید تا در اسرع وقت پاسخگو باشیم
 """
                 bot.sendMessage(chat_id, txxt, reply_markup=states[1])
                 return
@@ -1470,7 +1580,7 @@ def on_callback_query(msg):
 
     if(query_data.startswith("yems_")):
         chat_id = query_data.split("_")[1]
-        t = "لطفا مبلغ 200,000 تومان را به شماره حساب :\n" + "5022 2913 0240 6226\n" + "به نام محمد شریفی(امور مالی) واریز نموده و تصویر رسید واریزی را ارسال نمایید."
+        t = "لطفا مبلغ 350,000 تومان را به شماره حساب :\n" + "5022 2913 0240 6226\n" + "به نام محمد شریفی(امور مالی) واریز نموده و تصویر رسید واریزی را ارسال نمایید."
         bot.sendMessage(chat_id , ("کارت دانشجویی شما مورد قبول قرار گرفت. " +"\n"+t))
         set_state(chat_id, "sending_fish")
         bot.deleteMessage(telepothelli.origin_identifier(msg))
@@ -1543,20 +1653,20 @@ def register_event2(event_id, id):
     conn.commit()
 
 
-def register_event3(chat_id, event_id, phone, name):
+def register_event3(chat_id, event_id, phone, name,nezam,reshte):
     sign_ups = get_sign_ups2(event_id)
     if (sign_ups == "" or sign_ups == None):
         sign_ups = ""
-        sign_ups += str(chat_id) + ":" + str(name) + ":" + str(phone)
+        sign_ups += str(chat_id) + ":" + str(name) + ":" + str(phone) + ":"+str(nezam)+":"+str(reshte)
     else:
-        sign_ups += "," + str(chat_id) + ":" + str(name) + ":" + str(phone)
+        sign_ups += "," + str(chat_id) + ":" + str(name) + ":" + str(phone)+":"+str(nezam)+":"+str(reshte)
     conn = sqlite3.connect(db_name)
     query = "update events2 set signedtcodes = ? where id = ?"
     conn.execute(query, [sign_ups, int(event_id)])
     conn.commit()
 
 
-token = ""
+token = "5002577713:AAFvpvix2qiICv1C7MVmxp0JrkjufiIqJlk"
 
 bot = telepot.Bot(token)
 
@@ -1566,4 +1676,5 @@ print('Listening ...')
 
 while 1:
     time.sleep(10)
+
 
